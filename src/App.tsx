@@ -3,7 +3,7 @@ import { Sidebar } from './components/Sidebar';
 import { Workspace } from './components/workspace/Workspace';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useStore } from './store/useStore';
-import { LayoutGrid, MessageSquare, Share2, Box, Info } from 'lucide-react';
+import { LayoutGrid, MessageSquare, Share2, Box, Info, Cpu } from 'lucide-react';
 import { cn } from './lib/utils';
 
 const queryClient = new QueryClient();
@@ -17,7 +17,7 @@ export default function App() {
     { id: 'artifacts', icon: Box, label: 'Builds' },
     { id: 'deck', icon: LayoutGrid, label: 'PCards' },
     { id: 'ccc', icon: Share2, label: 'Semantic' },
-    { id: 'info', icon: Info, label: 'Support' },
+    { id: 'skills', icon: Cpu, label: 'Market' },
   ];
 
   return (

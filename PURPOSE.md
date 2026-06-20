@@ -37,9 +37,12 @@ Users who have moved entirely to LLM-driven development and find traditional fil
 
 ### Verified (Exists in Code)
 - **CCC (Common Code Context) Indexer:** A semantic symbol extractor that maps files to a searchable graph.
+- **Project Blueprints:** Intelligent multi-file scaffolding for diversos stacks (PWA, FastAPI, CRX).
+- **Skill Marketplace:** A registry for discovering, installing, and contributing architectural neural modules.
 - **Card Deck UI:** A mobile-optimized stack for triaging project status.
 - **Orchestration Chat:** A real-time interface for prompting the "Brain" to generate logic.
 - **Artifact Inspector:** A multi-tab viewer for code, builds, and architectural graphs.
+- **Automated Testing Suite:** Integrated Vitest environment for core logic validation.
 
 ### Inferred (Low/Medium Confidence)
 - **NSP (Nexus Stream Protocol):** A real-time protocol for streaming telemetry from runtime nodes (currently simulated with random data).

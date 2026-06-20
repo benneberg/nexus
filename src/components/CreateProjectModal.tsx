@@ -80,20 +80,31 @@ export const CreateProjectModal = ({ isOpen, onClose }: { isOpen: boolean, onClo
               </section>
 
               <section>
-                <h3 className="text-xs uppercase tracking-widest text-white/30 mb-4">Scaffold Blueprints</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mb-6 flex items-center gap-3">
+                  <div className="w-8 h-px bg-white/10" />
+                  Scaffold Blueprints
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {storeTemplates.map((t) => (
                     <button
                       key={t.id}
                       onClick={() => { setSelection(t.id); setStep(2); }}
-                      className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
+                      className="flex flex-col gap-4 p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
                     >
-                      <div className="p-3 bg-white/5 rounded-lg group-hover:bg-primary/20 group-hover:text-primary transition-colors">
-                        <Folder className="w-5 h-5" />
+                      <div className="flex items-center justify-between">
+                         <div className="p-3 bg-white/5 rounded-xl group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                           <Folder className="w-5 h-5" />
+                         </div>
+                         <span className="text-[9px] font-black bg-white/5 text-white/40 px-2 py-1 rounded uppercase tracking-wider">{t.category}</span>
                       </div>
                       <div>
-                        <h3 className="font-medium text-[13px] text-white/90">{t.name}</h3>
-                        <p className="text-[11px] text-white/40">{t.description}</p>
+                        <h3 className="font-bold text-sm text-white/90 group-hover:text-primary transition-colors">{t.name}</h3>
+                        <p className="text-[12px] text-white/30 mt-1 leading-relaxed">{t.description}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-2">
+                        {t.stack.map(s => (
+                          <span key={s} className="text-[9px] font-medium text-white/20 bg-white/5 px-2 py-0.5 rounded-full">{s}</span>
+                        ))}
                       </div>
                     </button>
                   ))}

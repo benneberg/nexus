@@ -28,12 +28,12 @@
 
 # Phase 2 — Make It Reliable (Hardening)
 
-- [ ] **[TESTING] [package.json]** Integrate Vitest and add unit tests for Store actions.  
+- [ ] **[TESTING] [src/__tests__]** Expand unit tests for all React components.  
   Priority: P1  
   Impact: Medium  
-  Effort: M  
-  Evidence: Current coverage is 0%.  
-  Recommendation: Follow `TESTING_DELTA.md` bootstrap.  
+  Effort: L  
+  Evidence: Initial testing infrastructure is live but coverage is low (~10%).  
+  Recommendation: Add tests for `ArtifactPanel` and `ChatPanel`.  
   Confidence: High
 
 - [ ] **[CCC] [components/CCCInspector.tsx]** Implement real repository indexing.  
@@ -72,13 +72,21 @@
 
 # Phase 4 — Future Enhancements
 
-- [ ] **[SKILLS] [SkillsView.tsx]** Real Skill Marketplace integration.  
-  Priority: P3  
-  Impact: Medium  
+- [ ] **[SKILLS] [SkillsView.tsx]** Connect Skill Marketplace to a real registry backend.  
+  Priority: P2  
+  Impact: High  
   Effort: L  
-  Evidence: Marketplace is currently a static list in store.  
-  Recommendation: Define a manifest fetcher from a CDN.  
-  Confidence: Medium
+  Evidence: Marketplace is structurally implemented but uses hardcoded lists.  
+  Recommendation: Implement `fetchSkills` from a remote JSON endpoint.  
+  Confidence: High
+
+- [ ] **[TEMPLATES] [store/useStore.ts]** Add "Custom Template" creation flow.  
+  Priority: P2  
+  Impact: Medium  
+  Effort: S  
+  Evidence: Template system exists but is restricted to static definitions.  
+  Recommendation: Allow users to "Save as Template" from an existing project.  
+  Confidence: High
 
 - [ ] **[MULTIMODAL] [ChatPanel.tsx]** Real voice-to-intent engine.  
   Priority: P3  

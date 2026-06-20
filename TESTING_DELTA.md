@@ -1,10 +1,20 @@
 # TESTING_DELTA.md
 
-## Existing Test Strategy
-**Status: NONE**
-The project currently relies on manual verification and `tsc` for type safety.
+## Current Status: INITIALIZED
+Vitest and Testing Library are fully integrated.
 
-## Coverage Gaps
+### Completed
+1. **Framework Setup:** Vitest, JSDOM, and Testing Library installed.
+2. **Infrastructure:** `src/__tests__/setup.ts` and `vite.config.ts` configuration complete.
+3. **Core Tests:** `src/__tests__/store.test.ts` and `src/__tests__/gemini.test.ts` are live.
+
+## Coverage Dashboard (Estimated)
+- **Store Logic:** 80%
+- **Gemini Helpers:** 90%
+- **UI Components:** 5%
+- **Overall:** ~15%
+
+## Coverage Gaps (Prioritized)
 1. **State Transitions (Zustand):** No verification of complex project addition/deletion logic.
 2. **AI Result Parsing:** No validation of the JSON response shape from `lib/gemini.ts`.
 3. **Component Rendering:** No tests for mobile-responsive drawer state or Artifact panel switching.

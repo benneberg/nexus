@@ -21,7 +21,7 @@
 ## Dependency Review
 **Status: STABLE / MODERN**
 
-- **Highlight:** Uses `motion` (v12) and `react` (v19), staying at the cutting edge of the ecosystem.
+- **Highlight:** Uses `vitest` and `@testing-library/react` for unit testing.
 - **Risk:** `mermaid` and `reactflow` are heavy dependencies. Bundlesize may be an issue for mobile performance.
 - **Drift:** `express` is in `package.json` but there is no entry point for it.
 - **Confidence:** High
@@ -49,9 +49,9 @@
 ---
 
 ## CI/CD Review
-**Status: NON-EXISTENT**
+**Status: INITIAL STAGE**
 
-- **Evidence:** No `.github/workflows` or similar CI scripts. No test scripts in `package.json` except `tsc`.
+- **Evidence:** Test scripts added to `package.json`. No automation pipelines found.
 - **Confidence:** High
 
 ---

@@ -30,6 +30,10 @@ A semantic indexer that performs "Archaeology" on the repository. It identifies:
 **Confidence: High**
 Handles the transformation of natural language into "Distilled Intelligence" (JSON orchestration nodes).
 
+### 4. Testing Layer (`src/__tests__`)
+**Confidence: High**
+A Vitest/JSDOM-based suite for verifying state transitions and orchestration logic integrity.
+
 ## DATA FLOW
 
 **Intent Execution Loop:**

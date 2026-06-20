@@ -17,9 +17,12 @@ Nexus operates on a bi-modal architecture:
 ## ✨ Features (Verified Prototype)
 
 - **Mobile-First Card Deck:** Triage your projects and engineering intents through the high-fidelity "PCard" interface.
+- **Project Blueprints:** Intelligent multi-file scaffolding for React PWAs, FastAPI backends, Chrome Extensions, and Data Science hubs.
+- **Skill Marketplace:** Discover, install, and contribute neural modules through the "Registry Submission" portal.
 - **CCC (Common Code Context):** A semantic graph explorer that visualizes your codebase as a network of symbols, not just folders.
 - **Orchestration Chat:** Instruct the Nexus Brain to architect features, refactor logic, or audit security through natural language.
 - **Live Build Artifacts:** Inspect distilled source code in a real-time, tabbed engineering dashboard.
+- **Automated Testing:** Dedicated Vitest suite for verifying Store logic and AI orchestration.
 - **NSP Telemetry (Simulated):** Visualizing the "health" and "latency" of your engineering nodes.
 
 ---

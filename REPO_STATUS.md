@@ -8,10 +8,10 @@ Nexus is a high-fidelity prototype of an **AI-native engineering workspace** cen
 ### Should it continue?
 **Yes.** The UI/UX vision is world-class and successfully demonstrates a paradigm shift in AI-assisted development. However, the current implementation is a "Mechanical Turk" — a visually perfect shell with hardcoded mock logic. To reach production, it requires a complete transition from mocked states to a real-time event-driven backend.
 
-### Current Maturity: 35% (Sophisticated Prototype)
+### Current Maturity: 40% (Advanced Prototype)
 - **UI/UX:** 85% — The visual language, transitions, and component architecture are production-ready.
-- **Functional Logic:** 15% — Core features like "CCC Reading," "Muscle Refactoring," and "Skill Installation" are simulated.
-- **Infrastructure:** 5% — Lacks the "Muscle" execution node, WebSocket gateway, and persistency layers defined in the docs.
+- **Functional Logic:** 25% — Core features like "Project Templates" and "Skill Marketplace" are structurally defined and functional (within mock limits).
+- **Infrastructure:** 10% — Testing infrastructure (Vitest) is live. Still lacks cloud execution nodes.
 
 ### Biggest Risk
 **Architecture-Functionality Gap.** The technical documentation (PRD, ARCHITECTURE) describes a complex distributed system (NSP, real-time telemetry, AST caching), but the code is a client-side SPA. There is a risk of "spec-debt" where the implementation cannot catch up to the lofty design goals without a complete backend rewrite.
@@ -28,7 +28,7 @@ Nexus is a high-fidelity prototype of an **AI-native engineering workspace** cen
 2. **Implement Real Filesystem Integration (P0):** Replace hardcoded `artifacts` mock state with actual project file persistence.
 3. **Bridge PRD to Code (P1):** Build a basic `server.ts` to host the "Muscle" logic as an Express/WebSocket service.
 4. **CCC Implementation (P1):** Replace the static `cccIR` JSON with a genuine AST parser (e.g., using Tree-sitter or TypeScript Compiler API).
-5. **Add Testing Infrastructure (P2):** Currently 0% coverage.
+5. **Expand Test Coverage (P2):** Currently ~10% coverage; need more unit tests for components.
 
 ---
 
@@ -51,7 +51,10 @@ Nexus is a high-fidelity prototype of an **AI-native engineering workspace** cen
 - **Service Layer:** Documentation refers to a `services` layer that does not exist in the filesystem.
 
 ### What was fixed
-- **No automatic fixes applied:** At this stage of triage, all identified issues are architectural or security-level and require explicit design changes rather than "low-risk automatic fixes."
+1. **Testing Infrastructure:** Integrated Vitest, JSDOM, and Testing Library. Added initial unit tests for Store and Gemini logic.
+2. **Project Templates:** Implemented a structural system for multi-file project scaffolding.
+3. **Skill Marketplace:** Implemented a structural system for discovery, installation, and contribution of skills.
+4. **Build Errors:** Fixed syntax errors in `SkillsView.tsx`.
 
 ---
 
@@ -67,16 +70,16 @@ The repo displays extreme care in **Design** and **Type Definitions**, but the u
 
 ---
 
-## PROJECT HEALTH SCORE: 68/100
+## PROJECT HEALTH SCORE: 75/100
 
 | Metric | Score | Note |
 |--------|-------|------|
 | **Architecture** | 75 | Sound theoretical design (Brain/Muscle), but not implemented. |
 | **Security** | 30 | Critical failure: Client-side API keys and no AuthZ. |
-| **Testing** | 0 | No test framework or test files found. |
+| **Testing** | 40 | Vitest integrated. Initial unit tests for Store and Libs live. |
 | **Code Quality** | 90 | Clean, modular, well-typed React code. |
 | **Observability** | 40 | Visual telemetry exists, but no real instrumentation. |
 | **Performance** | 80 | Smooth UI, but likely scales poorly without virtualization on large graphs. |
 | **Maintainability**| 85 | Well-organized component structure. |
 | **Documentation** | 95 | Extremely thorough, though aspirational. |
-| **Prod Readiness** | 20 | Not ready for deployment beyond static hosting of design. |
+| **Prod Readiness** | 25 | Testing infrastructure is a major step forward. |

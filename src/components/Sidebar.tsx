@@ -13,6 +13,7 @@ export const Sidebar = ({ mobileOnClose }: { mobileOnClose?: () => void }) => {
     { icon: Box, label: 'Builds', id: 'artifacts' },
     { icon: LayoutGrid, label: 'PCards', id: 'deck' },
     { icon: Share2, label: 'Semantic', id: 'ccc' },
+    { icon: Cpu, label: 'Marketplace', id: 'skills' },
     { icon: GitBranch, label: 'Git Sync', id: 'git' },
     { icon: Info, label: 'Support', id: 'info' },
   ];

@@ -13,6 +13,7 @@ interface AppActions {
   addSkill: (skill: Skill) => void;
   removeSkill: (skillId: string) => void;
   installSkill: (skillId: string) => void;
+  contributeSkill: (skill: Omit<Skill, 'id' | 'downloads' | 'rating'>) => void;
   updateCCC: (projectId: string, ir: CCCIR) => void;
   setActiveView: (view: ViewType) => void;
   updateTelemetryStream: (data: Partial<AppState['telemetryStream']>) => void;
@@ -219,6 +220,38 @@ export const useStore = create<AppState & AppActions>((set) => ({
            content: `import { createClient } from '@supabase/supabase-js';\n\nconst supabaseUrl = import.meta.env.VITE_SUPABASE_URL;\nconst supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;\n\nexport const supabase = createClient(supabaseUrl, supabaseAnonKey);`
          }
        ]
+    },
+    {
+       id: 'chrome-ext',
+       name: 'AI Chrome Extension',
+       description: 'Manifest V3 extension with built-in sidepanel and AI processing hooks.',
+       category: 'Frontend',
+       stack: ['Vite', 'React', 'CRXJS', 'Tailwind'],
+       scaffoldCmd: 'npx create-chrome-ext',
+       icon: 'Box',
+       initialFiles: [
+         {
+           path: 'manifest.json',
+           type: ArtifactType.CODE,
+           content: `{\n  "manifest_version": 3,\n  "name": "Nexus Extension",\n  "version": "1.0.0",\n  "side_panel": { "default_path": "sidepanel.html" }\n}`
+         }
+       ]
+    },
+    {
+       id: 'data-science',
+       name: 'Data Science Hub',
+       description: 'Python environment for EDA and model orchestration with Jupyter integration.',
+       category: 'Backend',
+       stack: ['Python', 'Pandas', 'Scikit-learn', 'Jupyter'],
+       scaffoldCmd: 'pip install pandas scikit-learn jupyter',
+       icon: 'Activity',
+       initialFiles: [
+         {
+           path: 'notebook.ipynb',
+           type: ArtifactType.CODE,
+           content: `{"cells": [], "metadata": {}, "nbformat": 4, "nbformat_minor": 5}`
+         }
+       ]
     }
   ],
   cccIR: {
@@ -394,6 +427,17 @@ export const useStore = create<AppState & AppActions>((set) => ({
     }
     return state;
   }),
+  contributeSkill: (skillData) => set((state) => ({
+    marketplaceSkills: [
+      {
+        ...skillData,
+        id: `skill-${Date.now()}`,
+        downloads: 0,
+        rating: 5.0,
+      } as Skill,
+      ...state.marketplaceSkills
+    ]
+  })),
   updateCCC: (projectId, ir) => set((state) => ({
     cccIR: { ...state.cccIR, [projectId]: ir }
   })),

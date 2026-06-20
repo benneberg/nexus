@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { Search, Plus, Cpu, Code, Shield, Zap, Terminal } from 'lucide-react';
+import { Search, Plus, Cpu, Code, Shield, Zap, Terminal, Sparkles, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Skill } from '../types';
 
@@ -10,85 +10,254 @@ export const SkillsView = () => {
   const [activeTab, setActiveTab] = useState<'installed' | 'marketplace'>('installed');
 
   const list = activeTab === 'installed' ? skills : marketplaceSkills;
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-  const filtered = list.filter(s => 
-    s.name.toLowerCase().includes(search.toLowerCase()) || 
-    s.description.toLowerCase().includes(search.toLowerCase())
-  );
+  const categories = ['All', 'Frontend', 'Backend', 'Git', 'Cloud', 'Design'];
+
+  const filtered = list.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || 
+      s.description.toLowerCase().includes(search.toLowerCase());
+    
+    if (activeTab === 'marketplace' && selectedCategory !== 'All') {
+      const categoryMap: Record<string, string[]> = {
+        'Frontend': ['react-skill', 'tailwind-wizard'],
+        'Backend': ['fastapi-node', 'db-gen'],
+        'Git': ['advanced-git'],
+        'Cloud': ['dockerize']
+      };
+      // Simple heuristic for demo
+      return matchesSearch && (categoryMap[selectedCategory]?.includes(s.id));
+    }
+    
+    return matchesSearch;
+  });
+
+  const [isContributing, setIsContributing] = useState(false);
 
   return (
-    <div className="flex-1 flex flex-col bg-[#050505] p-8 overflow-y-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2 uppercase italic text-[#F27D26]">Skill System</h1>
-          <p className="text-white/40 text-sm italic">Autonomous procedural intelligence modules for advanced orchestration.</p>
-        </div>
-        <div className="flex gap-4">
-            {activeTab === 'installed' && (
-              <button 
-                onClick={() => alert('Nexus Skill Submission Portal: Upload your NSP-compliant skill bundle (.nsk) for semantic validation.')}
-                className="flex items-center gap-2 bg-white/5 border border-white/10 px-6 py-2.5 rounded-full font-bold text-xs tracking-widest uppercase hover:bg-white/10 transition-all text-white/60"
-              >
-                <Plus className="w-4 h-4" />
-                Submit Skill
-              </button>
-            )}
-           <button 
-             onClick={() => setActiveTab(activeTab === 'installed' ? 'marketplace' : 'installed')}
-             className="flex items-center gap-2 bg-primary px-6 py-2.5 rounded-full font-bold text-xs tracking-widest uppercase hover:bg-primary/80 transition-all shadow-lg shadow-primary/20 text-white"
-           >
-             <Zap className="w-4 h-4" />
-             {activeTab === 'installed' ? 'Browse Marketplace' : 'View Installed'}
-           </button>
-        </div>
-      </div>
+    <div className="flex-1 flex flex-col bg-[#050505] p-8 overflow-y-auto no-scrollbar relative">
+      {/* Background Decorative Element */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-      <div className="relative mb-8 flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-          <input 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={activeTab === 'installed' ? "Search your skills..." : "Find intelligence in the marketplace..."}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm focus:outline-none focus:border-primary/50 transition-all"
-          />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-6 relative z-10">
+        <div>
+          <div className="inline-flex items-center gap-2 px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest mb-4">
+            <Zap className="w-3 h-3" />
+            Active Intelligence Registry v2.5
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-black text-white italic tracking-tighter leading-none mb-3">
+             Skill <span className="text-primary">Marketplace</span>
+          </h1>
+          <p className="text-white/40 text-sm max-w-xl italic">
+            Distill specialized engineering capabilities into your workspace. Browse neural modules or contribute your own architectural patterns.
+          </p>
         </div>
+        
         <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1 shrink-0">
           <button 
             onClick={() => setActiveTab('installed')}
             className={cn(
-              "px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-all",
-              activeTab === 'installed' ? "bg-white/10 text-[#F27D26]" : "text-white/20 hover:text-white/40"
+              "px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all",
+              activeTab === 'installed' ? "bg-white/10 text-white shadow-xl" : "text-white/20 hover:text-white/40"
             )}
           >Installed</button>
           <button 
             onClick={() => setActiveTab('marketplace')}
             className={cn(
-              "px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-all",
-              activeTab === 'marketplace' ? "bg-white/10 text-[#F27D26]" : "text-white/20 hover:text-white/40"
+              "px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all",
+              activeTab === 'marketplace' ? "bg-white/10 text-white shadow-xl" : "text-white/20 hover:text-white/40"
             )}
           >Marketplace</button>
         </div>
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl p-12">
-           <Cpu className="w-12 h-12 text-white/5 mb-4" />
-           <p className="text-white/20 font-bold uppercase tracking-widest text-sm">No neural modules found in current scope</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((skill) => (
-            <SkillCard 
-              key={skill.id} 
-              skill={skill} 
-              isInstalled={skills.some(s => s.id === skill.id)} 
-              onInstall={() => installSkill(skill.id)}
-              onRemove={() => removeSkill(skill.id)}
-            />
-          ))}
+      {activeTab === 'marketplace' && (
+        <div className="mb-12 relative z-10">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={cn(
+                  "px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all shrink-0",
+                  selectedCategory === cat 
+                    ? "bg-primary border-primary text-black" 
+                    : "bg-white/5 border-white/10 text-white/40 hover:border-white/20"
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
       )}
+
+      {activeTab === 'marketplace' && !search && selectedCategory === 'All' && (
+        <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
+          <div className="relative rounded-[2rem] overflow-hidden bg-gradient-to-br from-primary/20 via-primary/5 to-transparent border border-primary/20 p-8 sm:p-12 mb-8 group">
+            <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:scale-110 transition-transform duration-1000">
+              <Zap className="w-48 h-48 text-primary" />
+            </div>
+            <div className="max-w-xl relative z-10">
+              <div className="flex items-center gap-3 text-primary text-[11px] font-black uppercase tracking-[0.3em] mb-4">
+                <Sparkles className="w-4 h-4" />
+                Featured Module
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-black text-white italic tracking-tighter mb-4 uppercase">
+                Nexus <span className="text-primary">Cloud Deploy</span> Node
+              </h2>
+              <p className="text-white/60 text-sm mb-8 leading-relaxed italic">
+                One-click orchestration for multi-cloud deployments. Automated Kubernetes scaffolding, ingress rules, and SSL provisioning optimized for mobile-first intent.
+              </p>
+              <button className="px-8 py-4 bg-primary text-black font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:scale-105 transition-all shadow-xl shadow-primary/20">
+                Unlock Intelligence
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="relative mb-8 flex flex-col sm:flex-row gap-4 relative z-10">
+        <div className="relative flex-1">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <input 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={activeTab === 'installed' ? "Filter your neural modules..." : "Search the global intelligence registry..."}
+            className="w-full bg-white/[0.03] border border-white/5 rounded-3xl px-14 py-5 text-sm focus:outline-none focus:border-primary/50 transition-all font-medium text-white/80"
+          />
+        </div>
+        <button 
+          onClick={() => setIsContributing(true)}
+          className="flex items-center justify-center gap-3 bg-white/5 border border-white/5 px-8 py-5 rounded-3xl font-black text-[10px] tracking-[0.2em] uppercase hover:bg-white/10 transition-all text-white/60"
+        >
+          <Plus className="w-4 h-4" />
+          Contribute Skill
+        </button>
+      </div>
+
+      <div className="relative z-10 mb-20">
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.01]">
+             <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                <Cpu className="w-8 h-8 text-white/10" />
+             </div>
+             <p className="text-white/20 font-black uppercase tracking-[0.3em] text-[10px] italic">No compatible modules in current registry</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filtered.map((skill) => (
+              <SkillCard 
+                key={skill.id} 
+                skill={skill} 
+                isInstalled={skills.some(s => s.id === skill.id)} 
+                onInstall={() => installSkill(skill.id)}
+                onRemove={() => removeSkill(skill.id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {isContributing && (
+        <ContributionModal onClose={() => setIsContributing(false)} />
+      )}
+    </div>
+  );
+};
+
+const ContributionModal = ({ onClose }: { onClose: () => void }) => {
+  const { contributeSkill } = useStore();
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    version: '1.0.0',
+    author: 'Agent Smith',
+    triggers: '',
+    tools: '',
+    price: 'Free'
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    contributeSkill({
+      ...formData,
+      triggers: formData.triggers.split(',').map(t => t.trim()),
+      tools: formData.tools.split(',').map(t => t.trim()),
+      retrievalRules: [],
+      workflows: [],
+      validations: [],
+      prompts: []
+    });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-6">
+      <div className="w-full max-w-lg bg-[#0A0A0A] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
+         <div className="p-8 border-b border-white/5 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-black text-white italic tracking-tighter uppercase leading-none mb-1">
+                Registry <span className="text-primary italic">Submission</span>
+              </h2>
+              <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold">NSP-Compliant Protocol v2.5</p>
+            </div>
+            <button onClick={onClose} className="p-3 hover:bg-white/5 rounded-full transition-colors text-white/40">
+              <X className="w-5 h-5" />
+            </button>
+         </div>
+
+         <form onSubmit={handleSubmit} className="p-8 space-y-6">
+            <div className="space-y-4">
+               <div>
+                  <label className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 block">Identity Name</label>
+                  <input 
+                    required
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-[#050505] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white/80 focus:outline-none focus:border-primary transition-all font-bold placeholder:text-white/10"
+                    placeholder="e.g. Postgres Architect"
+                  />
+               </div>
+               <div>
+                  <label className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 block">Functional Intent (Description)</label>
+                  <textarea 
+                    required
+                    value={formData.description}
+                    onChange={e => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full bg-[#050505] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white/80 focus:outline-none focus:border-primary transition-all font-medium placeholder:text-white/10 resize-none"
+                    rows={3}
+                    placeholder="Describe the architectural capabilities..."
+                  />
+               </div>
+               <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 block">Neural Triggers</label>
+                    <input 
+                      value={formData.triggers}
+                      onChange={e => setFormData({ ...formData, triggers: e.target.value })}
+                      className="w-full bg-[#050505] border border-white/5 rounded-xl px-4 py-3 text-xs text-white/60 focus:outline-none focus:border-primary transition-all"
+                      placeholder="db, sql, postgres"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 block">Tool Access</label>
+                    <input 
+                      value={formData.tools}
+                      onChange={e => setFormData({ ...formData, tools: e.target.value })}
+                      className="w-full bg-[#050505] border border-white/5 rounded-xl px-4 py-3 text-xs text-white/60 focus:outline-none focus:border-primary transition-all"
+                      placeholder="SQLClient, FS"
+                    />
+                  </div>
+               </div>
+            </div>
+
+            <div className="pt-4 flex gap-4">
+               <button type="button" onClick={onClose} className="flex-1 py-5 border border-white/5 rounded-3xl font-black text-[10px] uppercase tracking-[0.2em] text-white/20 hover:text-white/40 transition-all">Cancel</button>
+               <button type="submit" className="flex-1 py-5 bg-primary text-black font-black text-[10px] uppercase tracking-[0.2em] rounded-3xl hover:scale-105 transition-all shadow-xl shadow-primary/20">Distill to Registry</button>
+            </div>
+         </form>
+      </div>
     </div>
   );
 };
