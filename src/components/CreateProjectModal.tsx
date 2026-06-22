@@ -4,11 +4,13 @@ import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
 
 export const CreateProjectModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const { addProject, templates: storeTemplates } = useStore();
+  const { addProject, templates: storeTemplates, importProjectFromZip, cloneProjectFromGit } = useStore();
   const [step, setStep] = useState(1);
   const [selection, setSelection] = useState<string | null>(null);
   const [projectName, setProjectName] = useState('');
   const [projectDesc, setProjectDesc] = useState('');
+  const [gitUrl, setGitUrl] = useState('');
+  const [file, setFile] = useState<File | null>(null);
 
   if (!isOpen) return null;
 
@@ -20,26 +22,35 @@ export const CreateProjectModal = ({ isOpen, onClose }: { isOpen: boolean, onClo
   ];
 
   const handleCreate = () => {
-    addProject({
-      id: `project-${Date.now()}`,
-      name: projectName || (selection === 'ai' ? 'AI Generated App' : 'New Workspace'),
-      description: projectDesc || 'Newly created nexus workspace',
-      scaffoldType: selection || 'blank',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      gitStatus: selection === 'git' ? {
-        branch: 'main',
-        isDirty: false,
-        ahead: 0,
-        behind: 0,
-        stagedFiles: [],
-        unstagedFiles: []
-      } : undefined
-    });
+    if (selection === 'git' && gitUrl) {
+      cloneProjectFromGit(projectName || 'Cloned Repository', gitUrl);
+    } else if (selection === 'upload' && file) {
+      importProjectFromZip(projectName || file.name, file);
+    } else {
+      addProject({
+        id: `project-${Date.now()}`,
+        name: projectName || (selection === 'ai' ? 'AI Generated App' : 'New Workspace'),
+        description: projectDesc || 'Newly created nexus workspace',
+        scaffoldType: selection || 'blank',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        status: 'active',
+        gitStatus: selection === 'git' ? {
+          branch: 'main',
+          isDirty: false,
+          ahead: 0,
+          behind: 0,
+          stagedFiles: [],
+          unstagedFiles: []
+        } : undefined
+      });
+    }
     setStep(1);
     setSelection(null);
     setProjectName('');
     setProjectDesc('');
+    setGitUrl('');
+    setFile(null);
     onClose();
   };
 
@@ -125,18 +136,26 @@ export const CreateProjectModal = ({ isOpen, onClose }: { isOpen: boolean, onClo
                  {selection === 'git' && (
                    <input 
                      placeholder="Repository URL (https://github.com/...)"
+                     value={gitUrl}
+                     onChange={(e) => setGitUrl(e.target.value)}
                      className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all shadow-inner"
                    />
                  )}
                  {selection === 'upload' && (
                    <div className="flex flex-col gap-3">
-                     <div className="w-full border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center gap-3 bg-white/[0.02] hover:bg-white/[0.05] transition-all cursor-pointer">
-                        <Upload className="w-8 h-8 text-[#F27D26] opacity-50" />
+                     <label className="w-full border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center gap-3 bg-white/[0.02] hover:bg-white/[0.05] transition-all cursor-pointer">
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept=".zip"
+                          onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        />
+                        <Upload className={cn("w-8 h-8 transition-colors", file ? "text-green-500" : "text-[#F27D26] opacity-50")} />
                         <div className="text-center">
-                          <p className="text-sm font-bold text-white/60">Drop ZIP or files here</p>
+                          <p className="text-sm font-bold text-white/60">{file ? file.name : "Drop ZIP or files here"}</p>
                           <p className="text-[10px] text-white/20 uppercase tracking-widest mt-1">or click to browse</p>
                         </div>
-                     </div>
+                     </label>
                      <p className="text-[10px] text-white/30 italic text-center">Nexus will semantically map the ingested files upon finalization.</p>
                    </div>
                  )}

@@ -1,10 +1,10 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
-import { Settings, Trash2, Box, Info, Cpu, Database, Save, RotateCcw, Activity } from 'lucide-react';
+import { Settings, Trash2, Box, Info, Cpu, Database, Save, RotateCcw, Activity, Archive, Copy, Download, Github, Share2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export const ProjectSettings = () => {
-  const { projects, currentProjectId, deleteProject, updateProject } = useStore();
+  const { projects, currentProjectId, deleteProject, updateProject, archiveProject, duplicateProject } = useStore();
   const project = projects.find(p => p.id === currentProjectId);
 
   if (!project) {
@@ -68,6 +68,58 @@ export const ProjectSettings = () => {
 
         <section className="space-y-6">
           <div className="flex items-center gap-2 mb-4">
+            <Settings className="w-3.5 h-3.5 text-primary" />
+            <h3 className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-widest">Workspace Actions</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <button 
+              onClick={() => archiveProject(project.id)}
+              className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-primary/30 transition-all group"
+            >
+              <Archive className={cn("w-4 h-4 transition-colors", project.status === 'archived' ? "text-primary" : "text-white/20 group-hover:text-primary")} />
+              <div className="text-left">
+                 <p className="text-[10px] font-bold text-white uppercase tracking-wider">{project.status === 'archived' ? 'Unarchive' : 'Archive'}</p>
+                 <p className="text-[8px] text-white/20 uppercase">Lifecycle</p>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => duplicateProject(project.id)}
+              className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-primary/30 transition-all group"
+            >
+              <Copy className="w-4 h-4 text-white/20 group-hover:text-primary transition-colors" />
+              <div className="text-left">
+                 <p className="text-[10px] font-bold text-white uppercase tracking-wider">Duplicate</p>
+                 <p className="text-[8px] text-white/20 uppercase">Cloning</p>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => alert('Preparing ZIP archive for download... (Simulated)')}
+              className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-primary/30 transition-all group"
+            >
+              <Download className="w-4 h-4 text-white/20 group-hover:text-primary transition-colors" />
+              <div className="text-left">
+                 <p className="text-[10px] font-bold text-white uppercase tracking-wider">Export ZIP</p>
+                 <p className="text-[8px] text-white/20 uppercase">Download</p>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => alert(`Pushing to ${project.gitUrl || 'nexus-remote'}... (Simulated)`)}
+              className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-primary/30 transition-all group"
+            >
+              <Github className="w-4 h-4 text-white/20 group-hover:text-primary transition-colors" />
+              <div className="text-left">
+                 <p className="text-[10px] font-bold text-white uppercase tracking-wider">Git Sync</p>
+                 <p className="text-[8px] text-white/20 uppercase">Publish</p>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <section className="space-y-6">
+          <div className="flex items-center gap-2 mb-4">
             <Cpu className="w-3.5 h-3.5 text-primary" />
             <h3 className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-widest">Runtime Analytics</h3>
           </div>
@@ -83,6 +135,30 @@ export const ProjectSettings = () => {
                 <span className="text-[8px] font-black uppercase tracking-widest text-[#F27D26]/60">{stat.label}</span>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="space-y-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Share2 className="w-3.5 h-3.5 text-primary" />
+            <h3 className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-widest">Workspace Sharing</h3>
+          </div>
+          <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4">
+             <div className="flex items-center justify-between">
+                <div>
+                   <p className="text-sm font-bold text-white uppercase tracking-wider">Collaborative Orchestration</p>
+                   <p className="text-[10px] text-white/30 italic">Enable real-time seat pairing and multi-brain workspace sharing (In Dev).</p>
+                </div>
+                <div className="px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded text-[8px] font-black uppercase tracking-widest">Nexus Pro</div>
+             </div>
+             <div className="flex gap-2">
+                <input 
+                  disabled
+                  placeholder="Invite by email or Nexus ID..."
+                  className="flex-1 bg-white/[0.02] border border-white/10 rounded-xl px-4 py-2 text-xs text-white/20 cursor-not-allowed italic"
+                />
+                <button disabled className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl font-bold text-[10px] tracking-widest uppercase text-white/20 cursor-not-allowed">Share</button>
+             </div>
           </div>
         </section>
 

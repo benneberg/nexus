@@ -21,7 +21,11 @@ interface AppActions {
   updatePCardInsight: (projectId: string, pcardId: string, insight: string) => void;
   updateGitStatus: (projectId: string, status: Partial<AppState['projects'][0]['gitStatus']>) => void;
   deleteProject: (projectId: string) => void;
+  archiveProject: (projectId: string) => void;
+  duplicateProject: (projectId: string) => void;
   updateProject: (projectId: string, updates: Partial<Project>) => void;
+  importProjectFromZip: (name: string, file: File) => void;
+  cloneProjectFromGit: (name: string, url: string) => void;
   initiateRefactor: (artifactId: string) => void;
   applyRefactor: () => void;
   rejectRefactor: () => void;
@@ -45,6 +49,7 @@ export const useStore = create<AppState & AppActions>((set) => ({
       scaffoldType: 'Next.js + Tailwind',
       createdAt: Date.now(),
       updatedAt: Date.now(),
+      status: 'active'
     }
   ],
   currentProjectId: 'nexus-core',
@@ -395,7 +400,7 @@ export const useStore = create<AppState & AppActions>((set) => ({
     }
 
     return { 
-      projects: [...state.projects, project],
+      projects: [...state.projects, { ...project, status: 'active' }],
       artifacts: [...state.artifacts, ...initialArtifacts]
     };
   }),
@@ -480,12 +485,119 @@ export const useStore = create<AppState & AppActions>((set) => ({
         ? (newProjects.length > 0 ? newProjects[0].id : null) 
         : state.currentProjectId,
       artifacts: state.artifacts.filter(a => a.projectId !== projectId),
-      pCards: { ...state.pCards, [projectId]: undefined }
+      pCards: { ...state.pCards, [projectId]: undefined },
+      cccIR: { ...state.cccIR, [projectId]: undefined }
+    };
+  }),
+  archiveProject: (projectId) => set((state) => ({
+    projects: state.projects.map(p => 
+      p.id === projectId 
+        ? { ...p, status: p.status === 'active' ? 'archived' : 'active' } 
+        : p
+    )
+  })),
+  duplicateProject: (projectId) => set((state) => {
+    const original = state.projects.find(p => p.id === projectId);
+    if (!original) return state;
+
+    const newId = `${original.id}-copy-${Date.now()}`;
+    const newProject: Project = {
+      ...original,
+      id: newId,
+      name: `${original.name} (Copy)`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      status: 'active'
+    };
+
+    const newArtifacts = state.artifacts
+      .filter(a => a.projectId === projectId)
+      .map(a => ({
+        ...a,
+        id: `${a.id}-copy-${Date.now()}`,
+        projectId: newId,
+        createdAt: Date.now()
+      }));
+
+    return {
+      projects: [...state.projects, newProject],
+      artifacts: [...state.artifacts, ...newArtifacts],
+      pCards: { ...state.pCards, [newId]: state.pCards[projectId] || [] },
+      cccIR: { ...state.cccIR, [newId]: state.cccIR[projectId] }
     };
   }),
   updateProject: (projectId, updates) => set((state) => ({
     projects: state.projects.map(p => p.id === projectId ? { ...p, ...updates } : p)
   })),
+  importProjectFromZip: (name, file) => {
+    const id = `import-${Date.now()}`;
+    set((state) => {
+      const newProject: Project = {
+        id,
+        name,
+        description: `Imported from ${file.name}`,
+        scaffoldType: 'upload',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        status: 'active'
+      };
+      
+      const initialArtifacts: Artifact[] = [
+        {
+          id: `manifest-${Date.now()}`,
+          projectId: id,
+          type: ArtifactType.REPORT,
+          title: 'Import Manifest',
+          content: `# Ingested from ZIP: ${file.name}\n\nNexus has expanded the archive. Proceeding with semantic mapping.`,
+          createdAt: Date.now()
+        }
+      ];
+
+      return {
+        projects: [...state.projects, newProject],
+        artifacts: [...state.artifacts, ...initialArtifacts]
+      };
+    });
+  },
+  cloneProjectFromGit: (name, url) => {
+    const id = `git-${Date.now()}`;
+    set((state) => {
+      const newProject: Project = {
+        id,
+        name,
+        description: `Cloned from ${url}`,
+        scaffoldType: 'git',
+        gitUrl: url,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        status: 'active',
+        gitStatus: {
+          branch: 'main',
+          isDirty: false,
+          ahead: 0,
+          behind: 0,
+          stagedFiles: [],
+          unstagedFiles: []
+        }
+      };
+      
+      const initialArtifacts: Artifact[] = [
+        {
+          id: `git-report-${Date.now()}`,
+          projectId: id,
+          type: ArtifactType.REPORT,
+          title: 'Git Clone Intelligence',
+          content: `# Repository: ${url}\n\nCloning successful. Indexing branches and semantic symbols.`,
+          createdAt: Date.now()
+        }
+      ];
+
+      return {
+        projects: [...state.projects, newProject],
+        artifacts: [...state.artifacts, ...initialArtifacts]
+      };
+    });
+  },
 
   initiateRefactor: (artifactId) => {
     set((state) => {

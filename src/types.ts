@@ -53,6 +53,8 @@ export interface Project {
   createdAt: number;
   updatedAt: number;
   gitStatus?: GitStatus;
+  status: 'active' | 'archived';
+  gitUrl?: string;
 }
 
 export interface GitStatus {

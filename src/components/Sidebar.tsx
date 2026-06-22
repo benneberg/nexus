@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutGrid, MessageSquare, Box, PenTool, Cpu, Settings, Plus, Share2, GitBranch, X, Info } from 'lucide-react';
+import { LayoutGrid, MessageSquare, Box, PenTool, Cpu, Settings, Plus, Share2, GitBranch, X, Info, Archive } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
 import { CreateProjectModal } from './CreateProjectModal';
@@ -46,12 +46,15 @@ export const Sidebar = ({ mobileOnClose }: { mobileOnClose?: () => void }) => {
             </button>
           </div>
           <div className="space-y-1.5 px-1">
-            {projects.length === 0 ? (
+            <div className="px-3 py-1 flex items-center justify-between mb-2">
+              <span className="text-[8px] font-bold text-white/10 uppercase tracking-widest">Active</span>
+            </div>
+            {projects.filter(p => p.status === 'active').length === 0 ? (
               <div className="px-3 py-4 text-center rounded-xl border border-dashed border-white/5 bg-white/[0.01]">
-                <p className="text-[10px] text-white/20 italic font-medium uppercase tracking-wider">No Workspaces Found</p>
+                <p className="text-[10px] text-white/20 italic font-medium uppercase tracking-wider">No Active Workspaces</p>
               </div>
             ) : (
-              projects.map((project) => (
+              projects.filter(p => p.status === 'active').map((project) => (
                 <button
                   key={project.id}
                   onClick={() => {
@@ -76,11 +79,36 @@ export const Sidebar = ({ mobileOnClose }: { mobileOnClose?: () => void }) => {
                     )}
                   </span>
                   <span className="text-[8px] text-white/20 mt-1 uppercase font-black tracking-[0.1em] truncate w-full relative z-10">{project.scaffoldType}</span>
-                  {currentProjectId === project.id && (
-                    <div className="absolute top-0 right-0 w-12 h-12 bg-primary/5 blur-xl rounded-full" />
-                  )}
                 </button>
               ))
+            )}
+
+            {projects.filter(p => p.status === 'archived').length > 0 && (
+              <>
+                <div className="px-3 py-1 mt-6 flex items-center justify-between mb-2">
+                  <span className="text-[8px] font-bold text-white/10 uppercase tracking-widest">Archived</span>
+                </div>
+                <div className="opacity-40 grayscale space-y-1.5">
+                  {projects.filter(p => p.status === 'archived').map((project) => (
+                    <button
+                      key={project.id}
+                      onClick={() => {
+                        setCurrentProject(project.id);
+                        setActiveView('settings');
+                        mobileOnClose?.();
+                      }}
+                      className={cn(
+                        "w-full flex flex-col items-start px-3 py-3 rounded-2xl text-[10px] transition-all group border relative border-transparent text-white/30 hover:bg-white/5"
+                      )}
+                    >
+                      <span className="font-bold truncate w-full flex items-center justify-between">
+                        {project.name}
+                        <Archive className="w-3 h-3 text-white/20" />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </section>
