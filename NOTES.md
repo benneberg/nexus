@@ -1,3 +1,7 @@
 Integrate a multi-stage verification pipeline for generated artifacts. This pipeline should include type checking, linting, running unit tests, and performing security scans before presenting the artifact for approval.
+Integrate Git functionality into the Nexus application. This should include the ability to clone repositories, view the current branch, stage changes, commit with messages, and push commits to a remote repository. Provide UI elements for these actions within the project management and workspace views.
 
+Create a Skill Store section in the Nexus application. This store should allow users to browse, search, install, and uninstall various Skills. Each Skill listing should include a name, description, version, and author. Implement a basic UI for managing installed skills.
+
+Design and implement a customizable dashboard for Nexus. Users should be able to pin frequently used projects, see a feed of recent activity across their projects, and access a curated list of project templates for quick scaffolding. Allow users to reorder and remove dashboard widgets.
 Design and implement a Skill Marketplace where users can browse, install, and share reusable AI workflows. Include features for skill discovery, versioning, and user ratings.
