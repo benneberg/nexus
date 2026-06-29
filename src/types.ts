@@ -72,6 +72,7 @@ export interface Skill {
   description: string;
   version: string;
   author: string;
+  category?: string;
   downloads?: number;
   rating?: number;
   price?: string; // "Free" or price
@@ -146,7 +147,7 @@ export interface PCard {
   quick_actions?: string[];
 }
 
-export type ViewType = 'workspace' | 'artifacts' | 'skills' | 'models' | 'settings' | 'ccc' | 'deck' | 'git' | 'marketplace' | 'info';
+export type ViewType = 'workspace' | 'artifacts' | 'skills' | 'models' | 'settings' | 'ccc' | 'deck' | 'git' | 'marketplace' | 'info' | 'dashboard';
 
 export interface TelemetryStream {
   cpu: number;
@@ -159,6 +160,8 @@ export interface TelemetryStream {
 export interface AppState {
   projects: Project[];
   currentProjectId: string | null;
+  pinnedProjectIds: string[];
+  dashboardWidgets: string[];
   messages: Message[];
   artifacts: Artifact[];
   skills: Skill[]; // Installed skills
