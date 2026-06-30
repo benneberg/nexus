@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, Folder, Github, FileJson, Zap, Upload } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
 
-export const CreateProjectModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+export const CreateProjectModal = ({ isOpen, onClose, initialSelection }: { isOpen: boolean, onClose: () => void, initialSelection?: string | null }) => {
   const { addProject, templates: storeTemplates, importProjectFromZip, cloneProjectFromGit } = useStore();
   const [step, setStep] = useState(1);
   const [selection, setSelection] = useState<string | null>(null);
@@ -11,6 +11,18 @@ export const CreateProjectModal = ({ isOpen, onClose }: { isOpen: boolean, onClo
   const [projectDesc, setProjectDesc] = useState('');
   const [gitUrl, setGitUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialSelection) {
+        setSelection(initialSelection);
+        setStep(2);
+      } else {
+        setStep(1);
+        setSelection(null);
+      }
+    }
+  }, [isOpen, initialSelection]);
 
   if (!isOpen) return null;
 

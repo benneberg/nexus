@@ -29,10 +29,38 @@ interface AppActions {
   initiateRefactor: (artifactId: string) => void;
   applyRefactor: () => void;
   rejectRefactor: () => void;
+  togglePinProject: (projectId: string) => void;
+  reorderWidgets: (widgets: string[]) => void;
+  removeWidget: (widgetId: string) => void;
+  addWidget: (widgetId: string) => void;
+  addActivityLog: (text: string, type: 'create' | 'git' | 'skill' | 'scaffold' | 'other', projectId?: string) => void;
+  stageFile: (projectId: string, file: string) => void;
+  unstageFile: (projectId: string, file: string) => void;
+  commitChanges: (projectId: string, message: string) => void;
+  pushChanges: (projectId: string) => void;
+  fetchChanges: (projectId: string) => void;
 }
 
 export const useStore = create<AppState & AppActions>((set) => ({
-  activeView: 'deck',
+  activeView: 'dashboard',
+  pinnedProjectIds: ['nexus-core'],
+  dashboardWidgets: ['pinned-projects', 'recent-activity', 'scaffold-templates', 'telemetry-status'],
+  recentActivity: [
+    {
+      id: 'act-1',
+      projectId: 'nexus-core',
+      text: 'Compiled the semantic index (CCC) for Nexus Core',
+      timestamp: Date.now() - 3600000 * 2,
+      type: 'scaffold'
+    },
+    {
+      id: 'act-2',
+      projectId: 'nexus-core',
+      text: 'Added React Expert skill to the registry',
+      timestamp: Date.now() - 3600000,
+      type: 'skill'
+    }
+  ],
   telemetryStream: {
     cpu: 18,
     memory: 42,
@@ -399,9 +427,18 @@ export const useStore = create<AppState & AppActions>((set) => ({
       });
     }
 
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      projectId: project.id,
+      text: template ? `Scaffolded workspace "${project.name}" using template "${template.name}"` : `Created workspace "${project.name}" from scratch`,
+      timestamp: Date.now(),
+      type: template ? 'scaffold' as const : 'create' as const
+    };
+
     return { 
       projects: [...state.projects, { ...project, status: 'active' }],
-      artifacts: [...state.artifacts, ...initialArtifacts]
+      artifacts: [...state.artifacts, ...initialArtifacts],
+      recentActivity: [newActivity, ...state.recentActivity]
     };
   }),
   setCurrentProject: (id) => set({ currentProjectId: id }),
@@ -422,13 +459,32 @@ export const useStore = create<AppState & AppActions>((set) => ({
     )
   })),
   addSkill: (skill) => set((state) => ({ skills: [...state.skills, skill] })),
-  removeSkill: (skillId) => set((state) => ({ 
-    skills: state.skills.filter(s => s.id !== skillId) 
-  })),
+  removeSkill: (skillId) => set((state) => {
+    const skill = state.skills.find(s => s.id === skillId);
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      text: skill ? `Uninstalled skill capability "${skill.name}"` : `Uninstalled skill capability`,
+      timestamp: Date.now(),
+      type: 'skill' as const
+    };
+    return { 
+      skills: state.skills.filter(s => s.id !== skillId),
+      recentActivity: [newActivity, ...state.recentActivity]
+    };
+  }),
   installSkill: (skillId) => set((state) => {
     const skill = state.marketplaceSkills.find(s => s.id === skillId);
     if (skill && !state.skills.find(s => s.id === skillId)) {
-      return { skills: [...state.skills, skill] };
+      const newActivity = {
+        id: `act-${Date.now()}`,
+        text: `Installed specialized capability "${skill.name}" (v${skill.version})`,
+        timestamp: Date.now(),
+        type: 'skill' as const
+      };
+      return { 
+        skills: [...state.skills, skill],
+        recentActivity: [newActivity, ...state.recentActivity]
+      };
     }
     return state;
   }),
@@ -553,9 +609,18 @@ export const useStore = create<AppState & AppActions>((set) => ({
         }
       ];
 
+      const newActivity = {
+        id: `act-${Date.now()}`,
+        projectId: id,
+        text: `Imported workspace "${name}" from ZIP file "${file.name}"`,
+        timestamp: Date.now(),
+        type: 'create' as const
+      };
+
       return {
         projects: [...state.projects, newProject],
-        artifacts: [...state.artifacts, ...initialArtifacts]
+        artifacts: [...state.artifacts, ...initialArtifacts],
+        recentActivity: [newActivity, ...state.recentActivity]
       };
     });
   },
@@ -592,9 +657,18 @@ export const useStore = create<AppState & AppActions>((set) => ({
         }
       ];
 
+      const newActivity = {
+        id: `act-${Date.now()}`,
+        projectId: id,
+        text: `Cloned Git repository "${name}" from "${url}"`,
+        timestamp: Date.now(),
+        type: 'git' as const
+      };
+
       return {
         projects: [...state.projects, newProject],
-        artifacts: [...state.artifacts, ...initialArtifacts]
+        artifacts: [...state.artifacts, ...initialArtifacts],
+        recentActivity: [newActivity, ...state.recentActivity]
       };
     });
   },
@@ -640,4 +714,140 @@ export const useStore = create<AppState & AppActions>((set) => ({
   },
 
   rejectRefactor: () => set({ pendingRefactor: null }),
+  togglePinProject: (projectId) => set((state) => {
+    const isPinned = state.pinnedProjectIds.includes(projectId);
+    const pinnedProjectIds = isPinned 
+      ? state.pinnedProjectIds.filter(id => id !== projectId)
+      : [...state.pinnedProjectIds, projectId];
+    return { pinnedProjectIds };
+  }),
+  reorderWidgets: (widgets) => set({ dashboardWidgets: widgets }),
+  removeWidget: (widgetId) => set((state) => ({
+    dashboardWidgets: state.dashboardWidgets.filter(w => w !== widgetId)
+  })),
+  addWidget: (widgetId) => set((state) => ({
+    dashboardWidgets: state.dashboardWidgets.includes(widgetId)
+      ? state.dashboardWidgets
+      : [...state.dashboardWidgets, widgetId]
+  })),
+  addActivityLog: (text, type, projectId) => set((state) => ({
+    recentActivity: [
+      {
+        id: `act-${Date.now()}`,
+        projectId,
+        text,
+        timestamp: Date.now(),
+        type
+      },
+      ...state.recentActivity
+    ]
+  })),
+  stageFile: (projectId, file) => set((state) => ({
+    projects: state.projects.map(p => {
+      if (p.id !== projectId || !p.gitStatus) return p;
+      const git = p.gitStatus;
+      return {
+        ...p,
+        gitStatus: {
+          ...git,
+          isDirty: true,
+          stagedFiles: [...git.stagedFiles, file],
+          unstagedFiles: git.unstagedFiles.filter(f => f !== file)
+        }
+      };
+    })
+  })),
+  unstageFile: (projectId, file) => set((state) => ({
+    projects: state.projects.map(p => {
+      if (p.id !== projectId || !p.gitStatus) return p;
+      const git = p.gitStatus;
+      return {
+        ...p,
+        gitStatus: {
+          ...git,
+          stagedFiles: git.stagedFiles.filter(f => f !== file),
+          unstagedFiles: [...git.unstagedFiles, file]
+        }
+      };
+    })
+  })),
+  commitChanges: (projectId, message) => set((state) => {
+    const proj = state.projects.find(p => p.id === projectId);
+    if (!proj || !proj.gitStatus) return state;
+    const git = proj.gitStatus;
+    
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      projectId,
+      text: `Committed to ${git.branch}: "${message}"`,
+      timestamp: Date.now(),
+      type: 'git' as const
+    };
+
+    const updatedProjects = state.projects.map(p => {
+      if (p.id !== projectId || !p.gitStatus) return p;
+      return {
+        ...p,
+        gitStatus: {
+          ...p.gitStatus,
+          isDirty: false,
+          ahead: p.gitStatus.ahead + 1,
+          stagedFiles: []
+        }
+      };
+    });
+
+    return {
+      projects: updatedProjects,
+      recentActivity: [newActivity, ...state.recentActivity]
+    };
+  }),
+  pushChanges: (projectId) => set((state) => {
+    const proj = state.projects.find(p => p.id === projectId);
+    if (!proj || !proj.gitStatus) return state;
+    const git = proj.gitStatus;
+
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      projectId,
+      text: `Pushed ${git.ahead} commit(s) to remote branch "${git.branch}"`,
+      timestamp: Date.now(),
+      type: 'git' as const
+    };
+
+    const updatedProjects = state.projects.map(p => {
+      if (p.id !== projectId || !p.gitStatus) return p;
+      return {
+        ...p,
+        gitStatus: {
+          ...p.gitStatus,
+          ahead: 0
+        }
+      };
+    });
+
+    return {
+      projects: updatedProjects,
+      recentActivity: [newActivity, ...state.recentActivity]
+    };
+  }),
+  fetchChanges: (projectId) => set((state) => {
+    const proj = state.projects.find(p => p.id === projectId);
+    if (!proj || !proj.gitStatus) return state;
+    
+    const updatedProjects = state.projects.map(p => {
+      if (p.id !== projectId || !p.gitStatus) return p;
+      return {
+        ...p,
+        gitStatus: {
+          ...p.gitStatus,
+          behind: Math.random() > 0.5 ? 1 : 0
+        }
+      };
+    });
+
+    return {
+      projects: updatedProjects
+    };
+  }),
 }));

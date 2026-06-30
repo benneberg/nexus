@@ -157,11 +157,20 @@ export interface TelemetryStream {
   uptime: string;
 }
 
+export interface ActivityLog {
+  id: string;
+  projectId?: string;
+  text: string;
+  timestamp: number;
+  type: 'create' | 'git' | 'skill' | 'scaffold' | 'other';
+}
+
 export interface AppState {
   projects: Project[];
   currentProjectId: string | null;
   pinnedProjectIds: string[];
   dashboardWidgets: string[];
+  recentActivity: ActivityLog[];
   messages: Message[];
   artifacts: Artifact[];
   skills: Skill[]; // Installed skills

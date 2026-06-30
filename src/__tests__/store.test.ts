@@ -16,7 +16,9 @@ describe('Store Logic', () => {
       result.current.addProject({
         id: projectId,
         name: 'Test Project',
+        description: 'A test project',
         scaffoldType: 'react-pwa',
+        status: 'active',
         createdAt: Date.now(),
         updatedAt: Date.now()
       });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutGrid, MessageSquare, Box, PenTool, Cpu, Settings, Plus, Share2, GitBranch, X, Info, Archive } from 'lucide-react';
+import { LayoutGrid, MessageSquare, Box, PenTool, Cpu, Settings, Plus, Share2, GitBranch, X, Info, Archive, Home } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
 import { CreateProjectModal } from './CreateProjectModal';
@@ -9,6 +9,7 @@ export const Sidebar = ({ mobileOnClose }: { mobileOnClose?: () => void }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navItems = [
+    { icon: Home, label: 'Dashboard', id: 'dashboard' },
     { icon: MessageSquare, label: 'Workspace', id: 'workspace' },
     { icon: Box, label: 'Builds', id: 'artifacts' },
     { icon: LayoutGrid, label: 'PCards', id: 'deck' },

@@ -11,6 +11,7 @@ import { ProjectSettings } from '../ProjectSettings';
 import { InfoPage } from '../InfoPage';
 import { OnboardingView } from '../OnboardingView';
 import { CreateProjectModal } from '../CreateProjectModal';
+import { DashboardView } from '../DashboardView';
 import { useTelemetry } from '../../hooks/useTelemetry';
 
 const ViewContainer = ({ children, onMenuClick }: { children: React.ReactNode, onMenuClick?: () => void }) => (
@@ -36,6 +37,7 @@ export const Workspace = ({ onMenuClick }: { onMenuClick?: () => void }) => {
   // Initialize NSP Telemetry Stream
   useTelemetry();
 
+  if (activeView === 'dashboard') return <ViewContainer onMenuClick={onMenuClick}><DashboardView /></ViewContainer>;
   if (activeView === 'skills') return <ViewContainer onMenuClick={onMenuClick}><SkillsView /></ViewContainer>;
   if (activeView === 'ccc') return <ViewContainer onMenuClick={onMenuClick}><CCCGraphEditor /></ViewContainer>;
   if (activeView === 'deck') return <ViewContainer onMenuClick={onMenuClick}><CardDeck /></ViewContainer>;
