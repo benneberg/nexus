@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppState, Project, Message, Artifact, ArtifactType, OrchestrationStep, Skill, CCCIR, ViewType } from '../types';
+import { AppState, Project, Message, Artifact, ArtifactType, OrchestrationStep, Skill, CCCIR, ViewType, PCard } from '../types';
 
 interface AppActions {
   addProject: (project: Project) => void;
@@ -39,10 +39,22 @@ interface AppActions {
   commitChanges: (projectId: string, message: string) => void;
   pushChanges: (projectId: string) => void;
   fetchChanges: (projectId: string) => void;
+  setPCards: (projectId: string, cards: PCard[]) => void;
 }
 
+const getLocalItem = <T>(key: string, defaultValue: T): T => {
+  if (typeof window === 'undefined') return defaultValue;
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (e) {
+    console.error('Error parsing localStorage key:', key, e);
+    return defaultValue;
+  }
+};
+
 export const useStore = create<AppState & AppActions>((set) => ({
-  activeView: 'dashboard',
+  activeView: (typeof window !== 'undefined' && localStorage.getItem('nexus_activeView') as ViewType) || 'dashboard',
   pinnedProjectIds: ['nexus-core'],
   dashboardWidgets: ['pinned-projects', 'recent-activity', 'scaffold-templates', 'telemetry-status'],
   recentActivity: [
@@ -69,7 +81,7 @@ export const useStore = create<AppState & AppActions>((set) => ({
     uptime: '12d 4h'
   },
   pendingRefactor: null,
-  projects: [
+  projects: getLocalItem<Project[]>('nexus_projects', [
     {
       id: 'nexus-core',
       name: 'Nexus Core',
@@ -79,9 +91,9 @@ export const useStore = create<AppState & AppActions>((set) => ({
       updatedAt: Date.now(),
       status: 'active'
     }
-  ],
-  currentProjectId: 'nexus-core',
-  messages: [
+  ]),
+  currentProjectId: (typeof window !== 'undefined' && localStorage.getItem('nexus_currentProjectId')) || 'nexus-core',
+  messages: getLocalItem<Message[]>('nexus_messages', [
     {
       id: 'welcome',
       role: 'assistant',
@@ -91,9 +103,9 @@ export const useStore = create<AppState & AppActions>((set) => ({
         { id: '1', label: 'CCC Semantic Compilation', status: 'completed', timestamp: Date.now() },
       ]
     }
-  ],
-  artifacts: [],
-  skills: [
+  ]),
+  artifacts: getLocalItem<Artifact[]>('nexus_artifacts', []),
+  skills: getLocalItem<Skill[]>('nexus_skills', [
     {
       id: 'react-skill',
       name: 'React Expert',
@@ -107,8 +119,24 @@ export const useStore = create<AppState & AppActions>((set) => ({
       validations: ['Typecheck'],
       prompts: ['System: You are an expert React architect.']
     }
-  ],
+  ]),
   marketplaceSkills: [
+    {
+      id: 'github-integration',
+      name: 'GitHub Sync & Clone',
+      description: 'Clone remote repositories directly into new Nexus workspaces, and push code changes back to GitHub securely.',
+      version: '1.5.0',
+      author: 'GitOps Core',
+      downloads: 9800,
+      rating: 4.9,
+      price: 'Free',
+      triggers: ['github', 'clone', 'push', 'git', 'sync'],
+      tools: ['GitClient', 'CredentialManager'],
+      retrievalRules: ['.github/**/*', '.git/**/*'],
+      workflows: ['clone_repository', 'push_code_changes'],
+      validations: ['GitAuth', 'BranchSync'],
+      prompts: ['System: Orchestrate clean commit history. Ensure credentials are secure.']
+    },
     {
       id: 'tailwind-wizard',
       name: 'Tailwind Wizard',
@@ -287,7 +315,7 @@ export const useStore = create<AppState & AppActions>((set) => ({
        ]
     }
   ],
-  cccIR: {
+  cccIR: getLocalItem<Record<string, CCCIR>>('nexus_cccIR', {
     'nexus-core': {
       nodes: [
         { type: 'Project', id: 'root', name: 'Nexus Core', metadata: {}, connections: ['auth-service'] },
@@ -296,8 +324,8 @@ export const useStore = create<AppState & AppActions>((set) => ({
       ],
       lastUpdated: Date.now()
     }
-  },
-  pCards: {
+  }),
+  pCards: getLocalItem<Record<string, PCard[]>>('nexus_pCards', {
     'nexus-core': [
       {
         pcard_id: 'auth-system',
@@ -379,7 +407,7 @@ export const useStore = create<AppState & AppActions>((set) => ({
         autonomous_insights: []
       }
     ]
-  },
+  }),
   isOrchestrating: false,
   currentStepIndex: 0,
   
@@ -501,6 +529,9 @@ export const useStore = create<AppState & AppActions>((set) => ({
   })),
   updateCCC: (projectId, ir) => set((state) => ({
     cccIR: { ...state.cccIR, [projectId]: ir }
+  })),
+  setPCards: (projectId, cards) => set((state) => ({
+    pCards: { ...state.pCards, [projectId]: cards }
   })),
   setActiveView: (activeView) => set({ activeView }),
   updateTelemetryStream: (data) => set((state) => ({
@@ -851,3 +882,24 @@ export const useStore = create<AppState & AppActions>((set) => ({
     };
   }),
 }));
+
+if (typeof window !== 'undefined') {
+  useStore.subscribe((state) => {
+    try {
+      localStorage.setItem('nexus_activeView', state.activeView);
+      if (state.currentProjectId) {
+        localStorage.setItem('nexus_currentProjectId', state.currentProjectId);
+      } else {
+        localStorage.removeItem('nexus_currentProjectId');
+      }
+      localStorage.setItem('nexus_projects', JSON.stringify(state.projects));
+      localStorage.setItem('nexus_cccIR', JSON.stringify(state.cccIR));
+      localStorage.setItem('nexus_pCards', JSON.stringify(state.pCards));
+      localStorage.setItem('nexus_messages', JSON.stringify(state.messages));
+      localStorage.setItem('nexus_artifacts', JSON.stringify(state.artifacts));
+      localStorage.setItem('nexus_skills', JSON.stringify(state.skills));
+    } catch (e) {
+      console.error('Error saving state to localStorage:', e);
+    }
+  });
+}
