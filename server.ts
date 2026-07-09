@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
@@ -34,6 +35,264 @@ function getAIClient(): GoogleGenAI | null {
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// Helper to scan directory for indexing
+function scanDir(dir: string, baseDir: string, results: string[] = []): string[] {
+  if (!fs.existsSync(dir)) return results;
+  const list = fs.readdirSync(dir);
+  list.forEach(file => {
+    const fullPath = path.join(dir, file);
+    const relPath = path.relative(baseDir, fullPath);
+    
+    // Ignore heavy or meta directories
+    if (
+      file === 'node_modules' || 
+      file === 'dist' || 
+      file === '.git' || 
+      file === '.aistudio' || 
+      file === '.next' ||
+      file === 'coverage'
+    ) {
+      return;
+    }
+    
+    try {
+      const stat = fs.statSync(fullPath);
+      if (stat && stat.isDirectory()) {
+        scanDir(fullPath, baseDir, results);
+      } else {
+        const ext = path.extname(file).toLowerCase();
+        if (['.ts', '.tsx', '.js', '.jsx', '.css', '.json', '.md'].includes(ext)) {
+          results.push(relPath);
+        }
+      }
+    } catch (e) {
+      console.warn(`Error scanning path ${fullPath}:`, e);
+    }
+  });
+  return results;
+}
+
+// Real Semantic Graph / Repository Indexer endpoint
+app.post('/api/ccc/index', (req, res) => {
+  try {
+    const baseDir = process.cwd();
+    const relativeFiles = scanDir(baseDir, baseDir);
+    
+    const nodes: any[] = [];
+    const idMap: Record<string, string> = {};
+    
+    // 1. Create the project root node
+    const rootNode = {
+      type: 'Project',
+      id: 'root-project',
+      name: 'Nexus Core Workspace',
+      metadata: {
+        path: baseDir,
+        os: process.platform,
+        node_version: process.version
+      },
+      connections: [] as string[]
+    };
+    nodes.push(rootNode);
+    
+    // 2. Read package.json for dependencies
+    const packageJsonPath = path.join(baseDir, 'package.json');
+    const dependencies: string[] = [];
+    if (fs.existsSync(packageJsonPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+        rootNode.name = pkg.name || 'Nexus Core Workspace';
+        if (pkg.dependencies) {
+          Object.entries(pkg.dependencies).forEach(([dep, ver]: [string, any]) => {
+            dependencies.push(dep);
+            const depNodeId = `dep-${dep.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            nodes.push({
+              type: 'Dependency',
+              id: depNodeId,
+              name: dep,
+              metadata: { version: ver },
+              connections: []
+            });
+            // Connect root to dependency
+            rootNode.connections.push(depNodeId);
+          });
+        }
+      } catch (pe) {
+        console.error('Error parsing package.json:', pe);
+      }
+    }
+    
+    // 3. Create File/Module/Service nodes
+    relativeFiles.forEach(relPath => {
+      const fileName = path.basename(relPath);
+      const ext = path.extname(relPath);
+      const fileId = `file-${relPath.replace(/[^a-zA-Z0-9]/g, '-')}`;
+      idMap[relPath] = fileId;
+      
+      let nodeType = 'File';
+      if (fileName.toLowerCase().includes('service') || relPath.startsWith('api/') || relPath.includes('server')) {
+        nodeType = 'Service';
+      } else if (ext === '.ts' || ext === '.tsx') {
+        nodeType = 'Module';
+      }
+      
+      const fullPath = path.join(baseDir, relPath);
+      let sizeStr = '0b';
+      let lines = 0;
+      try {
+        const stat = fs.statSync(fullPath);
+        sizeStr = `${Math.round(stat.size / 100) / 10}kb`;
+        const content = fs.readFileSync(fullPath, 'utf8');
+        lines = content.split('\n').length;
+      } catch (e) {}
+      
+      nodes.push({
+        type: nodeType,
+        id: fileId,
+        name: fileName,
+        metadata: {
+          path: relPath,
+          size: sizeStr,
+          lines: `${lines} loc`
+        },
+        connections: [] as string[]
+      });
+    });
+    
+    // 4. Build connections by scanning imports and package dependencies
+    relativeFiles.forEach(relPath => {
+      const fileId = idMap[relPath];
+      const fullPath = path.join(baseDir, relPath);
+      try {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        const fileNode = nodes.find(n => n.id === fileId);
+        if (!fileNode) return;
+        
+        // Find reference to other workspace files
+        relativeFiles.forEach(otherPath => {
+          if (otherPath === relPath) return;
+          const otherId = idMap[otherPath];
+          const otherNameWithoutExt = path.basename(otherPath, path.extname(otherPath));
+          
+          if (content.includes(otherNameWithoutExt)) {
+            if (!fileNode.connections.includes(otherId)) {
+              fileNode.connections.push(otherId);
+            }
+          }
+        });
+        
+        // Find reference to package dependencies
+        dependencies.forEach(dep => {
+          if (content.includes(dep)) {
+            const depNodeId = `dep-${dep.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            if (!fileNode.connections.includes(depNodeId)) {
+              fileNode.connections.push(depNodeId);
+            }
+          }
+        });
+      } catch (e) {}
+    });
+    
+    res.json({
+      nodes,
+      lastUpdated: Date.now()
+    });
+  } catch (error: any) {
+    console.error('Error generating real CCC IR index:', error);
+    res.status(500).json({ error: 'Failed to generate semantic index', details: error.message });
+  }
+});
+
+// AI Orchestration endpoint
+app.post('/api/orchestrate', async (req, res) => {
+  const { prompt, context } = req.body;
+
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'Prompt is required' });
+  }
+
+  const ai = getAIClient();
+
+  if (!ai) {
+    console.warn('GEMINI_API_KEY is not defined. Using mock orchestration engine.');
+    return res.json({
+      summary: `Simulated response for: ${prompt}`,
+      reasoning: "Mock engine activated. Setup GEMINI_API_KEY for real AI orchestration.",
+      graphUpdate: "No changes to the graph in mock mode",
+      retrievalNodes: [],
+      artifacts: [],
+      pCardUpdate: {
+        insight: "Configure GEMINI_API_KEY in settings to connect the neural brain.",
+        status: "MOCK ACTIVE"
+      }
+    });
+  }
+
+  try {
+    const SYSTEM_PROMPT = `
+You are the Nexus Orchestration Intelligence (NOI), the "Brain" in a Brain/Muscle engineering split. 
+Your goal is to transform user Intent into verified, architecturally coherent Artifacts.
+
+CORE DIRECTIVES:
+1. OPERATE ON CCC: View code as a Semantic Dependency Graph, not raw text.
+2. ORCHESTRATION PIPELINE: 
+   - Planner: Decompose intent into roadmaps.
+   - Retriever: Query CCC for SymbolNodes.
+   - Builder: Generate implementation deltas.
+   - Verifier: Validate results before final delivery.
+3. OUTPUT PORTABLE CARDS (pCards): Maximize semantic density.
+4. STEERING OVER EDITING: Guide the user to steer the system through intent.
+
+Always respond in valid JSON format according to the requested schema.
+`;
+
+    const fullPrompt = `${SYSTEM_PROMPT}
+
+Context: ${JSON.stringify(context || {})}
+
+Analyze the following engineering intent and coordinate the orchestration agents.
+
+Intent: ${prompt}
+
+RESPONSE SCHEMA:
+{
+  "summary": "High-level summary of the architectural change",
+  "reasoning": "Internal reasoning trace of the Planner agent",
+  "graphUpdate": "Description of the CCC Graph change",
+  "retrievalNodes": ["list", "of", "symbols", "accessed"],
+  "artifacts": [
+    {
+      "title": "Artifact Title",
+      "type": "CODE | DIAGRAM | REPORT",
+      "content": "The generated content",
+      "verificationState": "SUCCESS | PENDING"
+    }
+  ],
+  "pCardUpdate": {
+    "insight": "A proactive autonomous insight based on this change",
+    "status": "A status update for the project card"
+  }
+}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash',
+      contents: fullPrompt,
+      config: {
+        responseMimeType: 'application/json',
+      }
+    });
+
+    const jsonText = response.text || '{}';
+    const cleanedJson = jsonText.trim();
+    const result = JSON.parse(cleanedJson);
+
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error generating AI orchestration:', error);
+    res.status(500).json({ error: 'Failed to generate AI orchestration', details: error.message });
+  }
 });
 
 // AI Scaffold generator endpoint

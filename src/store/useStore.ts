@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { AppState, Project, Message, Artifact, ArtifactType, OrchestrationStep, Skill, CCCIR, ViewType, PCard } from '../types';
+import { setItem, getItem } from '../lib/db';
 
 interface AppActions {
   addProject: (project: Project) => void;
@@ -40,6 +41,7 @@ interface AppActions {
   pushChanges: (projectId: string) => void;
   fetchChanges: (projectId: string) => void;
   setPCards: (projectId: string, cards: PCard[]) => void;
+  loadPersistedState: () => Promise<void>;
 }
 
 const getLocalItem = <T>(key: string, defaultValue: T): T => {
@@ -881,6 +883,30 @@ export const useStore = create<AppState & AppActions>((set) => ({
       projects: updatedProjects
     };
   }),
+  loadPersistedState: async () => {
+    const activeView = await getItem<ViewType | null>('nexus_activeView', null);
+    const currentProjectId = await getItem<string | null>('nexus_currentProjectId', null);
+    const projects = await getItem<Project[] | null>('nexus_projects', null);
+    const cccIR = await getItem<Record<string, CCCIR> | null>('nexus_cccIR', null);
+    const pCards = await getItem<Record<string, PCard[]> | null>('nexus_pCards', null);
+    const messages = await getItem<Message[] | null>('nexus_messages', null);
+    const artifacts = await getItem<Artifact[] | null>('nexus_artifacts', null);
+    const skills = await getItem<Skill[] | null>('nexus_skills', null);
+
+    const updates: Partial<AppState> = {};
+    if (activeView) updates.activeView = activeView;
+    if (currentProjectId) updates.currentProjectId = currentProjectId;
+    if (projects) updates.projects = projects;
+    if (cccIR) updates.cccIR = cccIR;
+    if (pCards) updates.pCards = pCards;
+    if (messages) updates.messages = messages;
+    if (artifacts) updates.artifacts = artifacts;
+    if (skills) updates.skills = skills;
+
+    if (Object.keys(updates).length > 0) {
+      set(updates);
+    }
+  },
 }));
 
 if (typeof window !== 'undefined') {
@@ -898,8 +924,20 @@ if (typeof window !== 'undefined') {
       localStorage.setItem('nexus_messages', JSON.stringify(state.messages));
       localStorage.setItem('nexus_artifacts', JSON.stringify(state.artifacts));
       localStorage.setItem('nexus_skills', JSON.stringify(state.skills));
+
+      // Asynchronously backup to IndexedDB for unlimited capacity
+      setItem('nexus_activeView', state.activeView);
+      if (state.currentProjectId) {
+        setItem('nexus_currentProjectId', state.currentProjectId);
+      }
+      setItem('nexus_projects', state.projects);
+      setItem('nexus_cccIR', state.cccIR);
+      setItem('nexus_pCards', state.pCards);
+      setItem('nexus_messages', state.messages);
+      setItem('nexus_artifacts', state.artifacts);
+      setItem('nexus_skills', state.skills);
     } catch (e) {
-      console.error('Error saving state to localStorage:', e);
+      console.error('Error saving state to database persistence:', e);
     }
   });
 }

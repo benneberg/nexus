@@ -1,12 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { Box, Share2, Database, Code, Activity, Search, RefreshCw } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export const CCCInspector = () => {
-  const { cccIR, currentProjectId } = useStore();
+  const { cccIR, currentProjectId, updateCCC } = useStore();
   const ir = currentProjectId ? cccIR[currentProjectId] : null;
   const [filter, setFilter] = useState('');
+  const [isIndexing, setIsIndexing] = useState(false);
+
+  const handleReIndex = async () => {
+    if (!currentProjectId) return;
+    setIsIndexing(true);
+    try {
+      const response = await fetch('/api/ccc/index', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        updateCCC(currentProjectId, data);
+      } else {
+        console.error('Failed to index workspace');
+      }
+    } catch (err) {
+      console.error('Error fetching semantic index:', err);
+    } finally {
+      setIsIndexing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!ir && currentProjectId) {
+      handleReIndex();
+    }
+  }, [currentProjectId, ir]);
 
   const nodes = ir?.nodes.filter(n => {
     const searchStr = filter.toLowerCase();
@@ -27,9 +55,13 @@ export const CCCInspector = () => {
             <p className="text-white/40 text-sm">Real-time repository ingestion and architectural compilation.</p>
           </div>
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all border border-white/5">
-              <RefreshCw className="w-3 h-3" />
-              Re-Index
+            <button 
+              onClick={handleReIndex}
+              disabled={isIndexing}
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all border border-white/5 disabled:opacity-50"
+            >
+              <RefreshCw className={cn("w-3 h-3", isIndexing && "animate-spin")} />
+              {isIndexing ? 'Indexing...' : 'Re-Index'}
             </button>
             <button className="flex items-center gap-2 px-4 py-2 bg-[#F27D26] text-black rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#F27D26]/80 transition-all">
               <Share2 className="w-3 h-3" />

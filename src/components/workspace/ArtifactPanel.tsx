@@ -3,7 +3,7 @@ import {
   FileCode, Eye, Database, Share2, Activity, Cpu, Zap, Columns, 
   Terminal, MessageSquare, Plus, Send, Check, Shield, GitBranch, Play, RefreshCw, AlertCircle
 } from 'lucide-react';
-import Editor from '@monaco-editor/react';
+import Editor, { DiffEditor } from '@monaco-editor/react';
 import { useStore } from '../../store/useStore';
 import { ArtifactType } from '../../types';
 import { cn } from '../../lib/utils';
@@ -352,25 +352,21 @@ export const ArtifactPanel = () => {
                     Accept Diff
                   </button>
                 </div>
-                <div className="flex-1 grid grid-cols-2 divide-x divide-white/5 overflow-hidden">
-                  <div className="h-full">
-                    <Editor
-                      height="100%"
-                      language="typescript"
-                      theme="vs-dark"
-                      value={pendingRefactor.originalContent}
-                      options={{ readOnly: true, fontSize: 13, minimap: { enabled: false } }}
-                    />
-                  </div>
-                  <div className="h-full">
-                    <Editor
-                      height="100%"
-                      language="typescript"
-                      theme="vs-dark"
-                      value={pendingRefactor.proposedContent}
-                      options={{ readOnly: true, fontSize: 13, minimap: { enabled: false } }}
-                    />
-                  </div>
+                <div className="flex-1 overflow-hidden">
+                  <DiffEditor
+                    height="100%"
+                    language="typescript"
+                    theme="vs-dark"
+                    original={pendingRefactor.originalContent}
+                    modified={pendingRefactor.proposedContent}
+                    options={{
+                      readOnly: true,
+                      fontSize: 13,
+                      minimap: { enabled: false },
+                      renderSideBySide: true,
+                      scrollBeyondLastLine: false,
+                    }}
+                  />
                 </div>
               </div>
             ) : (

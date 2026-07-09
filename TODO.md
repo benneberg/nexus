@@ -2,7 +2,7 @@
 
 # Phase 1 — Make It Work (Foundation)
 
-- [ ] **[SECURITY] [src/lib/gemini.ts]** Move Gemini API logic to a server-side route.  
+- [x] **[SECURITY] [src/lib/gemini.ts]** Move Gemini API logic to a server-side route.  
   Priority: P0  
   Impact: Critical  
   Effort: M  
@@ -10,7 +10,7 @@
   Recommendation: Create `/api/orchestrate` in a new `server.ts`.  
   Confidence: High
 
-- [ ] **[CORE] [server.ts]** Initialize a real Express server with Vite middleware.  
+- [x] **[CORE] [server.ts]** Initialize a real Express server with Vite middleware.  
   Priority: P0  
   Impact: High  
   Effort: M  
@@ -18,7 +18,7 @@
   Recommendation: Add `server.ts` and update `package.json` scripts.  
   Confidence: High
 
-- [ ] **[STORAGE] [store/useStore.ts]** Connect workspace state to a persistent database.  
+- [x] **[STORAGE] [store/useStore.ts]** Connect workspace state to a persistent database.  
   Priority: P1  
   Impact: High  
   Effort: L  
@@ -28,7 +28,7 @@
 
 # Phase 2 — Make It Reliable (Hardening)
 
-- [ ] **[TESTING] [src/__tests__]** Expand unit tests for all React components.  
+- [x] **[TESTING] [src/__tests__]** Expand unit tests for all React components.  
   Priority: P1  
   Impact: Medium  
   Effort: L  
@@ -36,7 +36,7 @@
   Recommendation: Add tests for `ArtifactPanel` and `ChatPanel`.  
   Confidence: High
 
-- [ ] **[CCC] [components/CCCInspector.tsx]** Implement real repository indexing.  
+- [x] **[CCC] [components/CCCInspector.tsx]** Implement real repository indexing.  
   Priority: P1  
   Impact: Medium  
   Effort: L  
@@ -44,7 +44,7 @@
   Recommendation: Integrate a basic file-walker and regex-based symbol extractor.  
   Confidence: Medium
 
-- [ ] **[UI] [components/workspace/ArtifactPanel.tsx]** Add code-diff visualization.  
+- [x] **[UI] [components/workspace/ArtifactPanel.tsx]** Add code-diff visualization.  
   Priority: P2  
   Impact: High  
   Effort: M  

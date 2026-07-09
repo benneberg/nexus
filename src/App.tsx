@@ -9,8 +9,12 @@ import { cn } from './lib/utils';
 const queryClient = new QueryClient();
 
 export default function App() {
-  const { activeView, setActiveView } = useStore();
+  const { activeView, setActiveView, loadPersistedState } = useStore();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    loadPersistedState();
+  }, [loadPersistedState]);
 
   const bottomNavItems = [
     { id: 'workspace', icon: MessageSquare, label: 'Chat' },
