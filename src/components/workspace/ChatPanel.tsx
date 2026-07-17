@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Send, Loader2, Binary, Shield, Zap, Cpu, Activity, Plus,
-  Bold, Italic, Code as CodeIcon, Link as LinkIcon, Sparkles, LayoutGrid
+  Bold, Italic, Code as CodeIcon, Link as LinkIcon, Sparkles, LayoutGrid,
+  Mic, MicOff
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { Message, ArtifactType } from '../../types';
@@ -114,6 +115,54 @@ export const ChatPanel = () => {
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = 'en-US';
+
+      rec.onstart = () => {
+        setIsListening(true);
+      };
+
+      rec.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setInput(prev => prev ? `${prev} ${transcript}` : transcript);
+        }
+      };
+
+      rec.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = rec;
+    }
+  }, []);
+
+  const toggleSpeech = () => {
+    if (!recognitionRef.current) {
+      alert('Speech Recognition is not supported or permitted in this browser.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+    }
+  };
 
   const project = projects.find(p => p.id === currentProjectId);
   const projectArtifacts = artifacts.filter(a => a.projectId === currentProjectId);
@@ -360,6 +409,20 @@ export const ChatPanel = () => {
             >
               <Plus className="w-4 h-4" />
             </button>
+
+            <button 
+              onClick={toggleSpeech}
+              title={isListening ? "Stop Voice Input" : "Voice Command"} 
+              className={cn(
+                "p-2 rounded-lg transition-all",
+                isListening 
+                  ? "bg-red-500/20 text-red-500 border border-red-500/30 animate-pulse" 
+                  : "bg-white/5 hover:bg-[#F27D26]/20 text-white/20 hover:text-[#F27D26]"
+              )}
+            >
+              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
+
             <div className="h-4 w-px bg-white/10 mx-0.5 hidden sm:block" />
             <div className="flex items-center gap-1.5">
               <button 

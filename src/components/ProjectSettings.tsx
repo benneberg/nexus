@@ -4,8 +4,12 @@ import { Settings, Trash2, Box, Info, Cpu, Database, Save, RotateCcw, Activity, 
 import { cn } from '../lib/utils';
 
 export const ProjectSettings = () => {
-  const { projects, currentProjectId, deleteProject, updateProject, archiveProject, duplicateProject } = useStore();
+  const { projects, currentProjectId, deleteProject, updateProject, archiveProject, duplicateProject, saveAsTemplate } = useStore();
   const project = projects.find(p => p.id === currentProjectId);
+  
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = React.useState(false);
+  const [templateName, setTemplateName] = React.useState('');
+  const [templateDesc, setTemplateDesc] = React.useState('');
 
   if (!project) {
     return (
@@ -71,7 +75,7 @@ export const ProjectSettings = () => {
             <Settings className="w-3.5 h-3.5 text-primary" />
             <h3 className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-widest">Workspace Actions</h3>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <button 
               onClick={() => archiveProject(project.id)}
               className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-primary/30 transition-all group"
@@ -113,6 +117,21 @@ export const ProjectSettings = () => {
               <div className="text-left">
                  <p className="text-[10px] font-bold text-white uppercase tracking-wider">Git Sync</p>
                  <p className="text-[8px] text-white/20 uppercase">Publish</p>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => {
+                setTemplateName(`${project.name} Template`);
+                setTemplateDesc(`A custom blueprint saved from the ${project.name} workspace.`);
+                setIsTemplateModalOpen(true);
+              }}
+              className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-[#F27D26]/5 border border-[#F27D26]/10 hover:border-primary/40 transition-all group"
+            >
+              <Save className="w-4 h-4 text-[#F27D26]/40 group-hover:text-primary transition-colors animate-pulse" />
+              <div className="text-left">
+                 <p className="text-[10px] font-black text-white uppercase tracking-wider">Save Template</p>
+                 <p className="text-[8px] text-[#F27D26]/60 font-black uppercase">Blueprint</p>
               </div>
             </button>
           </div>
@@ -194,6 +213,75 @@ export const ProjectSettings = () => {
            </button>
         </div>
       </div>
+
+      {isTemplateModalOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-6">
+          <div className="w-full max-w-md bg-[#0A0A0A] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-black text-white italic tracking-tighter uppercase leading-none mb-1">
+                  Save as <span className="text-primary italic">Template</span>
+                </h2>
+                <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Custom Boilerplate Scaffold</p>
+              </div>
+              <button 
+                onClick={() => setIsTemplateModalOpen(false)} 
+                className="p-3 hover:bg-white/5 rounded-full transition-colors text-white/40"
+              >
+                <Settings className="w-5 h-5 rotate-95" />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 block">Template Name</label>
+                  <input 
+                    required
+                    value={templateName}
+                    onChange={e => setTemplateName(e.target.value)}
+                    className="w-full bg-[#050505] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white/80 focus:outline-none focus:border-primary transition-all font-bold placeholder:text-white/10"
+                    placeholder="e.g. My Custom React Flow Blueprint"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 block">Functional Intent Description</label>
+                  <textarea 
+                    required
+                    value={templateDesc}
+                    onChange={e => setTemplateDesc(e.target.value)}
+                    className="w-full bg-[#050505] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white/80 focus:outline-none focus:border-primary transition-all font-medium placeholder:text-white/10 resize-none"
+                    rows={3}
+                    placeholder="Describe what files and components this template scaffolds..."
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-4">
+                <button 
+                  type="button" 
+                  onClick={() => setIsTemplateModalOpen(false)} 
+                  className="flex-1 py-5 border border-white/5 rounded-3xl font-black text-[10px] uppercase tracking-[0.2em] text-white/20 hover:text-white/40 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => {
+                    if (templateName.trim()) {
+                      saveAsTemplate(project.id, templateName, templateDesc);
+                      setIsTemplateModalOpen(false);
+                      alert(`Successfully saved "${templateName}" to custom blueprints! You can now select it when initializing a new workspace.`);
+                    }
+                  }} 
+                  className="flex-1 py-5 bg-primary text-black font-black text-[10px] uppercase tracking-[0.2em] rounded-3xl hover:scale-105 transition-all shadow-xl shadow-primary/20"
+                >
+                  Save Blueprint
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

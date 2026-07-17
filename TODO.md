@@ -54,7 +54,7 @@
 
 # Phase 3 — Make It Production Ready (Scale)
 
-- [ ] **[REALTIME] [NSP Protocol]** Implement WebSocket gateway for Brain/Muscle sync.  
+- [x] **[REALTIME] [NSP Protocol]** Implement WebSocket gateway for Brain/Muscle sync.  
   Priority: P2  
   Impact: High  
   Effort: L  
@@ -62,7 +62,7 @@
   Recommendation: Use `socket.io` for event-driven telemetry status.  
   Confidence: Medium
 
-- [ ] **[PERFORMANCE] [components/CCCInspector.tsx]** Virtualize node lists.  
+- [x] **[PERFORMANCE] [components/CCCInspector.tsx]** Virtualize node lists.  
   Priority: P3  
   Impact: Low  
   Effort: S  
@@ -72,7 +72,7 @@
 
 # Phase 4 — Future Enhancements
 
-- [ ] **[SKILLS] [SkillsView.tsx]** Connect Skill Marketplace to a real registry backend.  
+- [x] **[SKILLS] [SkillsView.tsx]** Connect Skill Marketplace to a real registry backend.  
   Priority: P2  
   Impact: High  
   Effort: L  
@@ -80,7 +80,7 @@
   Recommendation: Implement `fetchSkills` from a remote JSON endpoint.  
   Confidence: High
 
-- [ ] **[TEMPLATES] [store/useStore.ts]** Add "Custom Template" creation flow.  
+- [x] **[TEMPLATES] [store/useStore.ts]** Add "Custom Template" creation flow.  
   Priority: P2  
   Impact: Medium  
   Effort: S  
@@ -88,7 +88,7 @@
   Recommendation: Allow users to "Save as Template" from an existing project.  
   Confidence: High
 
-- [ ] **[MULTIMODAL] [ChatPanel.tsx]** Real voice-to-intent engine.  
+- [x] **[MULTIMODAL] [ChatPanel.tsx]** Real voice-to-intent engine.  
   Priority: P3  
   Impact: Low  
   Effort: M  

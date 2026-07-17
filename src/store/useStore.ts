@@ -42,6 +42,8 @@ interface AppActions {
   fetchChanges: (projectId: string) => void;
   setPCards: (projectId: string, cards: PCard[]) => void;
   loadPersistedState: () => Promise<void>;
+  saveAsTemplate: (projectId: string, name: string, description: string) => void;
+  fetchMarketplaceSkills: () => Promise<void>;
 }
 
 const getLocalItem = <T>(key: string, defaultValue: T): T => {
@@ -518,17 +520,90 @@ export const useStore = create<AppState & AppActions>((set) => ({
     }
     return state;
   }),
-  contributeSkill: (skillData) => set((state) => ({
-    marketplaceSkills: [
-      {
-        ...skillData,
-        id: `skill-${Date.now()}`,
-        downloads: 0,
-        rating: 5.0,
-      } as Skill,
-      ...state.marketplaceSkills
-    ]
-  })),
+  contributeSkill: async (skillData) => {
+    try {
+      const response = await fetch('/api/skills/registry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(skillData)
+      });
+      if (response.ok) {
+        const newSkill = await response.json();
+        set((state) => ({
+          marketplaceSkills: [newSkill, ...state.marketplaceSkills]
+        }));
+      } else {
+        set((state) => ({
+          marketplaceSkills: [
+            {
+              ...skillData,
+              id: `skill-${Date.now()}`,
+              downloads: 0,
+              rating: 5.0,
+            } as Skill,
+            ...state.marketplaceSkills
+          ]
+        }));
+      }
+    } catch (e) {
+      set((state) => ({
+        marketplaceSkills: [
+          {
+            ...skillData,
+            id: `skill-${Date.now()}`,
+            downloads: 0,
+            rating: 5.0,
+          } as Skill,
+          ...state.marketplaceSkills
+        ]
+      }));
+    }
+  },
+  fetchMarketplaceSkills: async () => {
+    try {
+      const response = await fetch('/api/skills/registry');
+      if (response.ok) {
+        const skillsList = await response.json();
+        set({ marketplaceSkills: skillsList });
+      }
+    } catch (err) {
+      console.error('Error fetching marketplace skills:', err);
+    }
+  },
+  saveAsTemplate: (projectId, name, description) => set((state) => {
+    const project = state.projects.find(p => p.id === projectId);
+    if (!project) return state;
+
+    const projectArtifacts = state.artifacts.filter(a => a.projectId === projectId && a.type === 'code');
+    const initialFiles = projectArtifacts.map(art => ({
+      path: art.title,
+      content: art.content,
+      type: art.type
+    }));
+
+    const newTemplate: any = {
+      id: `custom-template-${Date.now()}`,
+      name: name,
+      description: description || `Custom template saved from ${project.name}`,
+      category: 'Frontend',
+      stack: ['Vite', 'React', 'Custom'],
+      scaffoldCmd: 'nexus create custom',
+      icon: 'Folder',
+      initialFiles
+    };
+
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      text: `Saved workspace "${project.name}" as custom template "${name}"`,
+      timestamp: Date.now(),
+      type: 'other' as const
+    };
+
+    return {
+      templates: [...state.templates, newTemplate],
+      recentActivity: [newActivity, ...state.recentActivity]
+    };
+  }),
   updateCCC: (projectId, ir) => set((state) => ({
     cccIR: { ...state.cccIR, [projectId]: ir }
   })),
@@ -892,6 +967,7 @@ export const useStore = create<AppState & AppActions>((set) => ({
     const messages = await getItem<Message[] | null>('nexus_messages', null);
     const artifacts = await getItem<Artifact[] | null>('nexus_artifacts', null);
     const skills = await getItem<Skill[] | null>('nexus_skills', null);
+    const templates = await getItem<any[] | null>('nexus_templates', null);
 
     const updates: Partial<AppState> = {};
     if (activeView) updates.activeView = activeView;
@@ -902,6 +978,7 @@ export const useStore = create<AppState & AppActions>((set) => ({
     if (messages) updates.messages = messages;
     if (artifacts) updates.artifacts = artifacts;
     if (skills) updates.skills = skills;
+    if (templates) updates.templates = templates;
 
     if (Object.keys(updates).length > 0) {
       set(updates);
@@ -924,6 +1001,7 @@ if (typeof window !== 'undefined') {
       localStorage.setItem('nexus_messages', JSON.stringify(state.messages));
       localStorage.setItem('nexus_artifacts', JSON.stringify(state.artifacts));
       localStorage.setItem('nexus_skills', JSON.stringify(state.skills));
+      localStorage.setItem('nexus_templates', JSON.stringify(state.templates));
 
       // Asynchronously backup to IndexedDB for unlimited capacity
       setItem('nexus_activeView', state.activeView);
@@ -936,6 +1014,7 @@ if (typeof window !== 'undefined') {
       setItem('nexus_messages', state.messages);
       setItem('nexus_artifacts', state.artifacts);
       setItem('nexus_skills', state.skills);
+      setItem('nexus_templates', state.templates);
     } catch (e) {
       console.error('Error saving state to database persistence:', e);
     }

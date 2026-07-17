@@ -9,12 +9,62 @@ import { cn } from './lib/utils';
 const queryClient = new QueryClient();
 
 export default function App() {
-  const { activeView, setActiveView, loadPersistedState } = useStore();
+  const { activeView, setActiveView, loadPersistedState, fetchMarketplaceSkills } = useStore();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   React.useEffect(() => {
     loadPersistedState();
-  }, [loadPersistedState]);
+    fetchMarketplaceSkills();
+  }, [loadPersistedState, fetchMarketplaceSkills]);
+
+  React.useEffect(() => {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    const wsUrl = `${protocol}//${host}`;
+    
+    console.log('Connecting to NSP WebSocket:', wsUrl);
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: any = null;
+
+    function connect() {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('NSP WebSocket connected successfully.');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'NSP_TELEMETRY') {
+            useStore.getState().updateTelemetryStream(data.payload);
+          } else if (data.type === 'SKILL_REGISTERED') {
+            useStore.setState((state) => ({
+              marketplaceSkills: [data.payload, ...state.marketplaceSkills.filter(s => s.id !== data.payload.id)]
+            }));
+          }
+        } catch (err) {
+          console.error('Error parsing WS message on client:', err);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('NSP WebSocket connection closed. Reconnecting...');
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
+
+      ws.onerror = (err) => {
+        console.error('NSP WebSocket error:', err);
+      };
+    }
+
+    connect();
+
+    return () => {
+      if (ws) ws.close();
+      clearTimeout(reconnectTimeout);
+    };
+  }, []);
 
   const bottomNavItems = [
     { id: 'workspace', icon: MessageSquare, label: 'Chat' },

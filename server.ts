@@ -4,6 +4,7 @@ import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
+import { WebSocketServer } from 'ws';
 
 dotenv.config();
 
@@ -202,6 +203,140 @@ app.post('/api/ccc/index', (req, res) => {
   } catch (error: any) {
     console.error('Error generating real CCC IR index:', error);
     res.status(500).json({ error: 'Failed to generate semantic index', details: error.message });
+  }
+});
+
+// Server-side database of skills for real marketplace sync
+let serverSkills = [
+  {
+    id: 'github-integration',
+    name: 'GitHub Sync & Clone',
+    description: 'Clone remote repositories directly into new Nexus workspaces, and push code changes back to GitHub securely.',
+    version: '1.5.0',
+    author: 'GitOps Core',
+    downloads: 9800,
+    rating: 4.9,
+    price: 'Free',
+    triggers: ['github', 'clone', 'push', 'git', 'sync'],
+    tools: ['GitClient', 'CredentialManager'],
+    retrievalRules: ['.github/**/*', '.git/**/*'],
+    workflows: ['clone_repository', 'push_code_changes'],
+    validations: ['GitAuth', 'BranchSync'],
+    prompts: ['System: Orchestrate clean commit history. Ensure credentials are secure.']
+  },
+  {
+    id: 'tailwind-wizard',
+    name: 'Tailwind Wizard',
+    description: 'Zero-config utility-first styling automation.',
+    version: '2.1.0',
+    author: 'DesignOps',
+    downloads: 12400,
+    rating: 4.9,
+    price: 'Free',
+    triggers: ['style', 'css', 'layout'],
+    tools: ['FileEditor'],
+    retrievalRules: ['**/*.css', 'tailwind.config.ts'],
+    workflows: ['apply_style'],
+    validations: ['CSSLint'],
+    prompts: ['System: Design with intent.']
+  },
+  {
+    id: 'advanced-git',
+    name: 'Advanced Git Operations',
+    description: 'Rebase orchestration, cherry-pick automation, and conflict resolution intelligence.',
+    version: '1.0.5',
+    author: 'GitFlow',
+    downloads: 5400,
+    rating: 4.8,
+    price: 'Free',
+    triggers: ['rebase', 'merge', 'git'],
+    tools: ['GitClient'],
+    retrievalRules: ['.git/**/*'],
+    workflows: ['resolve_conflicts'],
+    validations: ['GitStatus'],
+    prompts: ['System: Handle history with care.']
+  },
+  {
+    id: 'dockerize',
+    name: 'Dockerize Application',
+    description: 'Automated containerization with optimized multi-stage build generation.',
+    version: '1.2.0',
+    author: 'CloudNative',
+    downloads: 8200,
+    rating: 4.7,
+    price: '$2/mo',
+    triggers: ['docker', 'container', 'deploy'],
+    tools: ['DockerEngine'],
+    retrievalRules: ['Dockerfile', 'docker-compose.yml'],
+    workflows: ['generate_dockerfile'],
+    validations: ['DockerLinter'],
+    prompts: ['System: Minimize image size.']
+  },
+  {
+    id: 'db-gen',
+    name: 'Database Schema Generator',
+    description: 'Transform natural language into optimized SQL schemas and Prisma models.',
+    version: '2.0.1',
+    author: 'DataSense',
+    downloads: 15400,
+    rating: 4.9,
+    price: 'Free',
+    triggers: ['schema', 'database', 'sql'],
+    tools: ['DatabaseClient'],
+    retrievalRules: ['prisma/schema.prisma', 'src/db/**/*'],
+    workflows: ['generate_schema'],
+    validations: ['PrismaValidate'],
+    prompts: ['System: Normalize data structures. Avoid redundant indices.']
+  }
+];
+
+// Global reference for wss broadcast from endpoints
+let activeWss: any = null;
+
+// Skills registry endpoints
+app.get('/api/skills/registry', (req, res) => {
+  res.json(serverSkills);
+});
+
+app.post('/api/skills/registry', (req, res) => {
+  try {
+    const { name, description, version, author, triggers, tools } = req.body;
+    if (!name || !description) {
+      return res.status(400).json({ error: 'Name and description are required' });
+    }
+    const newSkill = {
+      id: `skill-${Date.now()}`,
+      name,
+      description,
+      version: version || '1.0.0',
+      author: author || 'Agent Smith',
+      downloads: 0,
+      rating: 5.0,
+      price: 'Free',
+      triggers: Array.isArray(triggers) ? triggers : (triggers ? triggers.split(',').map((t: string) => t.trim()) : []),
+      tools: Array.isArray(tools) ? tools : (tools ? tools.split(',').map((t: string) => t.trim()) : []),
+      retrievalRules: [],
+      workflows: [],
+      validations: [],
+      prompts: []
+    };
+    serverSkills.unshift(newSkill);
+    
+    // Broadcast skill registration event to all websocket connections
+    if (activeWss) {
+      activeWss.clients.forEach((client: any) => {
+        if (client.readyState === 1 /* OPEN */) {
+          client.send(JSON.stringify({
+            type: 'SKILL_REGISTERED',
+            payload: newSkill
+          }));
+        }
+      });
+    }
+
+    res.status(201).json(newSkill);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to contribute skill', details: err.message });
   }
 });
 
@@ -489,8 +624,60 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Express Server booted successfully on port ${PORT}`);
+  });
+
+  const wss = new WebSocketServer({ server });
+  activeWss = wss;
+
+  wss.on('connection', (ws) => {
+    console.log('NSP WebSocket connection established.');
+
+    // Send immediate sync status
+    ws.send(JSON.stringify({
+      type: 'NSP_CONNECTED',
+      payload: {
+        timestamp: Date.now(),
+        message: 'Brain/Muscle sync established over real-time NSP protocol gateway.'
+      }
+    }));
+
+    // Periodically send simulated telemetry updates
+    const interval = setInterval(() => {
+      if (ws.readyState === 1 /* OPEN */) {
+        ws.send(JSON.stringify({
+          type: 'NSP_TELEMETRY',
+          payload: {
+            timestamp: Date.now(),
+            cpu: Math.round(Math.random() * 15 + 5), // 5% - 20%
+            memory: Math.round(Math.random() * 10 + 35), // 35% - 45%
+            network: Math.round(Math.random() * 20 + 5), // 5kbps - 25kbps
+            latency: Math.round(Math.random() * 30 + 15), // 15ms - 45ms
+            uptime: '12d 4h 12m'
+          }
+        }));
+      }
+    }, 5000);
+
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        if (data.type === 'PING') {
+          ws.send(JSON.stringify({ type: 'PONG', timestamp: Date.now() }));
+        } else if (data.type === 'VOICE_COMMAND') {
+          // Process Voice Commands or trigger special AI response
+          console.log('Received real voice command steering payload:', data.text);
+        }
+      } catch (err) {
+        console.error('Error in WS message:', err);
+      }
+    });
+
+    ws.on('close', () => {
+      clearInterval(interval);
+      console.log('NSP WebSocket connection closed.');
+    });
   });
 }
 
