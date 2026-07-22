@@ -1,79 +1,164 @@
-# ARCHITECTURE.md
+schema:
+  version: 1
+  compatible_with:
+    - CCC
+  generated_by: Repository Bootstrap Prompt
+  generated_at: "2026-07-21T19:53:01-07:00"
+  repository: Nexus
 
-## HIGH-LEVEL ARCHITECTURE (VISION)
+architecture_style:
+  value: Full-Stack Modular Client-Server with Real-Time WebSocket Gateway
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - server.ts
+    - package.json
+    - src/App.tsx
+  notes: ""
 
-**Confidence: High (Based on PRD/Specs)**
+major_components:
+  value:
+    - Express Backend (server.ts): Manages API endpoints, Gemini proxying, CCC indexing, and skill registry.
+    - WebSocket Telemetry Server (server.ts): Handles NSP protocol real-time message broadcasting.
+    - Zustand Store (src/store/useStore.ts): Centralized client state management with double-layer storage (localStorage + IndexedDB).
+    - ChatPanel (src/components/workspace/ChatPanel.tsx): Handles user prompt orchestration and Web Speech API voice input.
+    - CCCInspector (src/components/CCCInspector.tsx): Renders virtualized semantic graph representation of repository symbols.
+    - SkillsView (src/components/SkillsView.tsx): Manages installation and creation of marketplace skills.
+    - ProjectSettings (src/components/ProjectSettings.tsx): Handles project updates and custom template creation.
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - server.ts
+    - src/store/useStore.ts
+    - src/components/
+  notes: ""
 
-Nexus is architected as a **Bi-Modal Distributed System**:
+responsibilities:
+  value:
+    server: Express handles static serving in production, Vite middleware in dev, AI calls to Gemini SDK, CCC semantic indexing, and WS telemetry broadcasting.
+    client: React single-page application manages UI view transitions, user interactions, local state persistence, and WS event handling.
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - server.ts
+    - src/App.tsx
+  notes: ""
 
-1.  **The Brain (Client/Orchestrator):** Processes user intent, manages semantic context (CCC), and coordinates with the LLM.
-2.  **The Muscle (Server/Runtime):** Executes the instructions. It manages the filesystem, runs build scripts, and streams telemetry back to the Brain via NSP (Nexus Stream Protocol).
+dependency_flow:
+  value: "React Components -> Zustand Store -> Fetch / WebSocket -> Express Server -> Google GenAI SDK"
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - src/components/
+    - src/store/useStore.ts
+    - server.ts
+  notes: ""
 
-## COMPONENT BREAKDOWN
+data_flow:
+  value:
+    - User types prompt or uses voice input in ChatPanel.
+    - Request sent to /api/orchestrate on Express backend.
+    - Backend calls Google GenAI SDK and returns generated response/artifacts.
+    - Store updates messages and artifacts state, persisting to localStorage and IndexedDB.
+    - Real-time telemetry is streamed from server to client via NSP WebSocket gateway.
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - server.ts
+    - src/store/useStore.ts
+    - src/components/workspace/ChatPanel.tsx
+  notes: ""
 
-### 1. The Core Store (`src/store/useStore.ts`)
-**Confidence: High**
-The central orchestrator of the frontend. It manages:
-- **Global Navigation:** Views (Deck, Chat, CCC, Artifacts).
-- **Project Catalog:** Metadata for all workspaces.
-- **Telemetry Buffers:** NSP packets (currently simulated).
-- **Artifact Cache:** In-memory storage of generated source code.
+source_of_truth:
+  value:
+    - Server: In-memory skill registry and CCC index.
+    - Client: Zustand Store synced asynchronously to IndexedDB and localStorage.
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - server.ts
+    - src/store/useStore.ts
+  notes: ""
 
-### 2. Common Code Context (CCC) (`src/lib/ccc.ts`)
-**Confidence: High**
-A semantic indexer that performs "Archaeology" on the repository. It identifies:
-- Symbols (Classes, Functions, Modules).
-- Relationship Graphs (Impact Analysis).
-- Metadata (File paths, sizes).
+entry_points:
+  value:
+    - server.ts (HTTP and WS server listener on port 3000)
+    - src/main.tsx (React DOM root hydration)
+    - src/App.tsx (Main app view switcher and WS lifecycle listener)
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - package.json
+    - server.ts
+    - src/main.tsx
+  notes: ""
 
-### 3. Intent Engine (`src/lib/gemini.ts`)
-**Confidence: High**
-Handles the transformation of natural language into "Distilled Intelligence" (JSON orchestration nodes).
+external_systems:
+  value:
+    - Google Gemini API (@google/genai SDK)
+    - Web Speech API (browser built-in)
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - server.ts
+    - src/components/workspace/ChatPanel.tsx
+  notes: ""
 
-### 4. Testing Layer (`src/__tests__`)
-**Confidence: High**
-A Vitest/JSDOM-based suite for verifying state transitions and orchestration logic integrity.
+extension_points:
+  value:
+    - Custom Skill creation and marketplace contribution via /api/skills/registry
+    - Custom template creation from existing workspace in ProjectSettings
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - server.ts
+    - src/components/SkillsView.tsx
+    - src/components/ProjectSettings.tsx
+  notes: ""
 
-## DATA FLOW
+configuration:
+  value:
+    - process.env.GEMINI_API_KEY
+    - process.env.NODE_ENV
+    - PORT (defaults to 3000)
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - server.ts
+    - .env.example
+  notes: ""
 
-**Intent Execution Loop:**
-1.  **Prompt:** User enters intent in `ChatPanel.tsx`.
-2.  **Orchestration:** `gemini.ts` generates a plan (planning node).
-3.  **Distillation:** The Brain breaks the plan into `Artifacts`.
-4.  **Sync:** (Intended) The Artifacts are sent to the "Muscle" via WebSocket.
-5.  **Feedback:** Real-time metrics stream back to the `TelemetryStream`.
+constraints:
+  value:
+    - Port 3000 is hardcoded for container ingress proxy routing.
+    - API keys must remain server-side.
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - server.ts
+  notes: ""
 
-## PROTOTYPE VS. PRODUCTION (CURRENT STATE)
+architecture_risks:
+  value:
+    - Network drops can temporarily disconnect WebSocket connection (mitigated by auto-reconnect loop in App.tsx).
+  evidence_state: OBSERVED
+  confidence: HIGH
+  evidence:
+    - src/App.tsx
+  notes: ""
 
-| Feature | Prototype (Current) | Production (Intended) |
-| :--- | :--- | :--- |
-| **Logic Node** | Client-side React SPA | Distributed Express/Node server |
-| **AI Integration** | Client-side SDK (Vulnerable) | Server-side proxy (Secure) |
-| **Persistence** | In-memory Zustand (Ephemeral) | Firestore / Cloud SQL |
-| **Filesystem** | Virtual "Artifact" State | Real OS Filesystem access |
-| **Telemetry** | `Math.random()` simulation | Live Node/Docker metrics |
+improvement_opportunities:
+  value:
+    - Persist server skill registry to cloud database (e.g., Firestore or PostgreSQL) across container restarts.
+  evidence_state: INFERRED
+  confidence: HIGH
+  evidence:
+    - server.ts
+  notes: Current server skill registry is stored in-memory in server.ts.
 
-## EXTERNAL INTEGRATIONS
-
-- **Google Gemini API:** Primary intelligence engine.
-- **Lucide Icons:** Visual system for semantic labeling.
-- **React Flow / Mermaid:** For graph/architecture visualization.
-
-## DEPLOYMENT MODEL
-
-**Current Reality (Confidence: High):**
-- **Static Hosting:** The app is a self-contained Vite build.
-- **Build Script:** `npm run build` produces a standard `dist/` folder.
-- **CI/CD:** None found (Manual deployment context).
-
-## ARCHITECTURAL RISKS
-
-1.  **Security (Critical):** Gemini API key is currently exposed in the browser bundle.
-2.  **Scale (Medium):** The CCC Graph Editor (`CCCGraphEditor.tsx`) may lag when rendering 100+ nodes without virtualization.
-3.  **Consistency (High):** The "Muscle" state and "Brain" state can drift if the WebSocket connection for NSP is interrupted.
-
-## RECOMMENDED IMPROVEMENTS
-
-1.  **Bridge to Server:** Introduce a Node.js backend to handle Gemini requests and File IO.
-2.  **Database Layer:** Replace the static `initialFiles` and mock projects with a persistent store (e.g., Firebase).
-3.  **Security Proxy:** Move AI authentication to the server.
+unknown_areas:
+  value: UNSET
+  evidence_state: UNSET
+  confidence: NONE
+  evidence: []
+  notes: "No architectural unknown areas detected."
