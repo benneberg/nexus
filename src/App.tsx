@@ -20,49 +20,94 @@ export default function App() {
   React.useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    const wsUrl = `${protocol}//${host}`;
+    const wsUrl = `${protocol}//${host}/nsp`;
     
-    console.log('Connecting to NSP WebSocket:', wsUrl);
     let ws: WebSocket | null = null;
     let reconnectTimeout: any = null;
+    let pollInterval: any = null;
+    let attempts = 0;
 
-    function connect() {
-      ws = new WebSocket(wsUrl);
-
-      ws.onopen = () => {
-        console.log('NSP WebSocket connected successfully.');
-      };
-
-      ws.onmessage = (event) => {
+    function startPollingFallback() {
+      if (pollInterval) return;
+      const fetchTelemetry = async () => {
         try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'NSP_TELEMETRY') {
-            useStore.getState().updateTelemetryStream(data.payload);
-          } else if (data.type === 'SKILL_REGISTERED') {
-            useStore.setState((state) => ({
-              marketplaceSkills: [data.payload, ...state.marketplaceSkills.filter(s => s.id !== data.payload.id)]
-            }));
+          const res = await fetch('/api/telemetry');
+          if (res.ok) {
+            const data = await res.json();
+            useStore.getState().updateTelemetryStream(data);
           }
-        } catch (err) {
-          console.error('Error parsing WS message on client:', err);
+        } catch (e) {
+          // ignore transient poll errors
         }
       };
+      fetchTelemetry();
+      pollInterval = setInterval(fetchTelemetry, 5000);
+    }
 
-      ws.onclose = () => {
-        console.log('NSP WebSocket connection closed. Reconnecting...');
-        reconnectTimeout = setTimeout(connect, 3000);
-      };
+    function stopPollingFallback() {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    }
 
-      ws.onerror = (err) => {
-        console.error('NSP WebSocket error:', err);
-      };
+    function connect() {
+      try {
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          console.log('NSP WebSocket connected successfully.');
+          attempts = 0;
+          stopPollingFallback();
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'NSP_TELEMETRY') {
+              useStore.getState().updateTelemetryStream(data.payload);
+            } else if (data.type === 'SKILL_REGISTERED') {
+              useStore.setState((state) => ({
+                marketplaceSkills: [data.payload, ...state.marketplaceSkills.filter(s => s.id !== data.payload.id)]
+              }));
+            }
+          } catch (err) {
+            // quiet catch
+          }
+        };
+
+        ws.onclose = () => {
+          attempts++;
+          if (attempts >= 2) {
+            startPollingFallback();
+            reconnectTimeout = setTimeout(connect, 10000);
+          } else {
+            reconnectTimeout = setTimeout(connect, 3000);
+          }
+        };
+
+        ws.onerror = () => {
+          console.warn('NSP WebSocket connection unavailable, fallback active.');
+          startPollingFallback();
+        };
+      } catch (e) {
+        console.warn('NSP WebSocket initialization failed, fallback active.');
+        startPollingFallback();
+      }
     }
 
     connect();
 
     return () => {
-      if (ws) ws.close();
+      if (ws) {
+        ws.onopen = null;
+        ws.onmessage = null;
+        ws.onclose = null;
+        ws.onerror = null;
+        ws.close();
+      }
       clearTimeout(reconnectTimeout);
+      stopPollingFallback();
     };
   }, []);
 

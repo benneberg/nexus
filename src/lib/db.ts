@@ -5,7 +5,7 @@ const STORE_NAME = 'nexus_store';
 function getDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') {
-      reject(new Error('IndexedDB is not supported'));
+      reject(new Error('IndexedDB is not supported in this environment'));
       return;
     }
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -21,6 +21,7 @@ function getDB(): Promise<IDBDatabase> {
 }
 
 export async function setItem<T>(key: string, value: T): Promise<void> {
+  if (typeof indexedDB === 'undefined') return;
   try {
     const db = await getDB();
     return new Promise((resolve, reject) => {
@@ -31,11 +32,12 @@ export async function setItem<T>(key: string, value: T): Promise<void> {
       request.onsuccess = () => resolve();
     });
   } catch (e) {
-    console.error(`Error saving key ${key} to IndexedDB:`, e);
+    // quiet fallback
   }
 }
 
 export async function getItem<T>(key: string, defaultValue: T): Promise<T> {
+  if (typeof indexedDB === 'undefined') return defaultValue;
   try {
     const db = await getDB();
     return new Promise((resolve, reject) => {
@@ -48,7 +50,6 @@ export async function getItem<T>(key: string, defaultValue: T): Promise<T> {
       };
     });
   } catch (e) {
-    console.warn(`Error loading key ${key} from IndexedDB, returning default:`, e);
     return defaultValue;
   }
 }

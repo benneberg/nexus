@@ -1,164 +1,91 @@
-schema:
-  version: 1
-  compatible_with:
-    - CCC
-  generated_by: Repository Bootstrap Prompt
-  generated_at: "2026-07-21T19:53:01-07:00"
-  repository: Nexus
+# ARCHITECTURE.md
 
-architecture_style:
-  value: Full-Stack Modular Client-Server with Real-Time WebSocket Gateway
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - server.ts
-    - package.json
-    - src/App.tsx
-  notes: ""
+## 1. SYSTEM ARCHITECTURE OVERVIEW
 
-major_components:
-  value:
-    - Express Backend (server.ts): Manages API endpoints, Gemini proxying, CCC indexing, and skill registry.
-    - WebSocket Telemetry Server (server.ts): Handles NSP protocol real-time message broadcasting.
-    - Zustand Store (src/store/useStore.ts): Centralized client state management with double-layer storage (localStorage + IndexedDB).
-    - ChatPanel (src/components/workspace/ChatPanel.tsx): Handles user prompt orchestration and Web Speech API voice input.
-    - CCCInspector (src/components/CCCInspector.tsx): Renders virtualized semantic graph representation of repository symbols.
-    - SkillsView (src/components/SkillsView.tsx): Manages installation and creation of marketplace skills.
-    - ProjectSettings (src/components/ProjectSettings.tsx): Handles project updates and custom template creation.
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - server.ts
-    - src/store/useStore.ts
-    - src/components/
-  notes: ""
+Nexus is structured as a full-stack, bi-modal application combining a Node.js/Express server with a Vite-powered React 19 single-page application.
 
-responsibilities:
-  value:
-    server: Express handles static serving in production, Vite middleware in dev, AI calls to Gemini SDK, CCC semantic indexing, and WS telemetry broadcasting.
-    client: React single-page application manages UI view transitions, user interactions, local state persistence, and WS event handling.
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - server.ts
-    - src/App.tsx
-  notes: ""
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                             CLIENT LAYER                                 │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │                     React 19 SPA (Vite + Tailwind)                 │  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌───────────┐  ┌───────────┐ │  │
+│  │  │ ChatPanel    │  │ CCCInspector │  │ CardDeck  │  │ SkillsView│ │  │
+│  │  └──────────────┘  └──────────────┘  └───────────┘  └───────────┘ │  │
+│  └──────────────────────────────────┬─────────────────────────────────┘  │
+│                                     │                                    │
+│                    Zustand Store (useStore.ts)                           │
+│              (localStorage + IndexedDB Persistence)                      │
+└─────────────────────────────────────┬────────────────────────────────────┘
+                                      │ HTTP / WebSocket (Port 3000)
+┌─────────────────────────────────────▼────────────────────────────────────┐
+│                             SERVER LAYER                                 │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │                  Node.js Express Server (server.ts)                 │  │
+│  │  ┌─────────────────┐  ┌──────────────────┐  ┌───────────────────┐  │  │
+│  │  │ /api/orchestrate│  │ /api/ccc/index   │  │ /api/skills/reg.  │  │  │
+│  │  └────────┬────────┘  └──────────────────┘  └───────────────────┘  │  │
+│  │           │                                                        │  │
+│  │  ┌────────▼────────────────┐        ┌───────────────────────────┐  │  │
+│  │  │ Google GenAI SDK        │        │ NSP WebSocket Gateway     │  │  │
+│  │  │ (@google/genai)         │        │ (path: /nsp) + Telemetry  │  │  │
+│  │  └─────────────────────────┘        └───────────────────────────┘  │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────┘
+```
 
-dependency_flow:
-  value: "React Components -> Zustand Store -> Fetch / WebSocket -> Express Server -> Google GenAI SDK"
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - src/components/
-    - src/store/useStore.ts
-    - server.ts
-  notes: ""
+---
 
-data_flow:
-  value:
-    - User types prompt or uses voice input in ChatPanel.
-    - Request sent to /api/orchestrate on Express backend.
-    - Backend calls Google GenAI SDK and returns generated response/artifacts.
-    - Store updates messages and artifacts state, persisting to localStorage and IndexedDB.
-    - Real-time telemetry is streamed from server to client via NSP WebSocket gateway.
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - server.ts
-    - src/store/useStore.ts
-    - src/components/workspace/ChatPanel.tsx
-  notes: ""
+## 2. MAJOR COMPONENTS & RESPONSIBILITIES
 
-source_of_truth:
-  value:
-    - Server: In-memory skill registry and CCC index.
-    - Client: Zustand Store synced asynchronously to IndexedDB and localStorage.
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - server.ts
-    - src/store/useStore.ts
-  notes: ""
+### Server Layer (`server.ts`)
+- **Express HTTP API Router:** Serves static frontend assets in production and routes API endpoints (`/api/orchestrate`, `/api/ccc/index`, `/api/skills/registry`, `/api/telemetry`).
+- **Gemini Proxy Engine:** Securely initializes `@google/genai` using `process.env.GEMINI_API_KEY`. It processes natural language steering prompts, structures JSON responses, and returns architectural summaries, steps, and generated code artifacts to the client without exposing keys.
+- **NSP Telemetry WebSocket Gateway:** Hosts a WebSocket server (`/nsp`) that broadcasts system health metrics and real-time skill registration events.
+- **CCC Semantic Indexer (`/api/ccc/index`):** Parses the server workspace filesystem to build a deterministic Common Code Context symbol graph for visual inspection.
 
-entry_points:
-  value:
-    - server.ts (HTTP and WS server listener on port 3000)
-    - src/main.tsx (React DOM root hydration)
-    - src/App.tsx (Main app view switcher and WS lifecycle listener)
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - package.json
-    - server.ts
-    - src/main.tsx
-  notes: ""
+### Client Layer (`src/`)
+- **Zustand State Engine (`src/store/useStore.ts`):** Manages global state across projects, active views, artifacts, messages, skills, custom templates, and telemetry. Features double-layer persistence via `localStorage` and `IndexedDB`.
+- **ChatPanel (`src/components/workspace/ChatPanel.tsx`):** Renders orchestration chat, step breakdowns, and voice input via browser Web Speech API.
+- **CCCInspector (`src/components/CCCInspector.tsx`):** Renders semantic codebase graph nodes with row virtualization powered by `@tanstack/react-virtual` for fluid rendering of large symbol sets.
+- **SkillsView (`src/components/SkillsView.tsx`):** Marketplace for browsing, installing, and contributing custom skill modules to the server registry.
+- **ProjectSettings (`src/components/ProjectSettings.tsx`):** Workspace management panel including the Custom Template engine that saves active project files as reusable scaffolds.
 
-external_systems:
-  value:
-    - Google Gemini API (@google/genai SDK)
-    - Web Speech API (browser built-in)
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - server.ts
-    - src/components/workspace/ChatPanel.tsx
-  notes: ""
+---
 
-extension_points:
-  value:
-    - Custom Skill creation and marketplace contribution via /api/skills/registry
-    - Custom template creation from existing workspace in ProjectSettings
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - server.ts
-    - src/components/SkillsView.tsx
-    - src/components/ProjectSettings.tsx
-  notes: ""
+## 3. DATA FLOW & SEQUENCE
 
-configuration:
-  value:
-    - process.env.GEMINI_API_KEY
-    - process.env.NODE_ENV
-    - PORT (defaults to 3000)
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - server.ts
-    - .env.example
-  notes: ""
+1. **User Steering Intent:**
+   - User inputs natural language or uses Web Speech voice transcription in `ChatPanel`.
+   - Client sends HTTP POST to `/api/orchestrate`.
+   - Server delegates to Gemini SDK (`gemini-2.5-flash`), formats response into structured JSON, and returns artifacts.
+   - Client store updates messages and artifacts, auto-saving to local persistence.
 
-constraints:
-  value:
-    - Port 3000 is hardcoded for container ingress proxy routing.
-    - API keys must remain server-side.
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - server.ts
-  notes: ""
+2. **Real-time Telemetry & Fallback:**
+   - On launch, `App.tsx` opens WebSocket connection to `ws://<host>/nsp`.
+   - Server streams `NSP_TELEMETRY` events every 3 seconds.
+   - If WebSocket connection fails or is blocked by sandbox proxying, client automatically falls back to HTTP polling via `/api/telemetry` every 5 seconds.
 
-architecture_risks:
-  value:
-    - Network drops can temporarily disconnect WebSocket connection (mitigated by auto-reconnect loop in App.tsx).
-  evidence_state: OBSERVED
-  confidence: HIGH
-  evidence:
-    - src/App.tsx
-  notes: ""
+3. **Semantic Indexing:**
+   - Client calls `/api/ccc/index`.
+   - Server traverses `src/` directory, extracts exported symbols, imports, and relationships, returning a structured CCC IR payload.
+   - `CCCInspector` visualizes nodes using list virtualization.
 
-improvement_opportunities:
-  value:
-    - Persist server skill registry to cloud database (e.g., Firestore or PostgreSQL) across container restarts.
-  evidence_state: INFERRED
-  confidence: HIGH
-  evidence:
-    - server.ts
-  notes: Current server skill registry is stored in-memory in server.ts.
+---
 
-unknown_areas:
-  value: UNSET
-  evidence_state: UNSET
-  confidence: NONE
-  evidence: []
-  notes: "No architectural unknown areas detected."
+## 4. DESIGN PATTERNS & PRINCIPLES
+
+- **API Key Isolation:** Secrets are kept strictly server-side in `server.ts`. Client never accesses or exposes raw API keys.
+- **Single External Port (Port 3000):** Express binds to host `0.0.0.0` on port `3000`. WebSocket gateway mounts on the same HTTP server (`/nsp`).
+- **Bundled Single Binary Server Output:** Production build uses `esbuild` to compile `server.ts` into a CommonJS binary (`dist/server.cjs`) with externalized dependencies, minimizing cold-start times and eliminating ESM resolution ambiguities in production containers.
+- **Double-Layer Persistence:** State syncs synchronously to `localStorage` and asynchronously backs up to `IndexedDB` (`src/lib/db.ts`).
+
+---
+
+## 5. ARCHITECTURAL RISKS & MITIGATIONS
+
+| Risk | Impact | Mitigation Strategy |
+| :--- | :--- | :--- |
+| **WebSocket Connection Drops** | Telemetry stream interruption | Automatic fallback to HTTP `/api/telemetry` polling in `App.tsx`. |
+| **Missing GEMINI_API_KEY** | Orchestration failure | Server-side fallback heuristics return structured mock responses with explicit warnings when API key is unconfigured. |
+| **Large Symbol Graph Bloat** | DOM lag during codebase inspection | `@tanstack/react-virtual` virtualized rendering limits DOM nodes in `CCCInspector.tsx`. |

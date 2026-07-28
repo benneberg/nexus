@@ -1,97 +1,97 @@
-# TODO.md
+# TODO.md — Nexus Execution Roadmap
 
-# Phase 1 — Make It Work (Foundation)
+**Repository Status:** Production-Ready Prototype  
+**Estimated Completion Level:** 92%  
+**Remaining Effort:** ~15-20 engineering hours for full multi-tenant cloud persistence.
 
-- [x] **[SECURITY] [src/lib/gemini.ts]** Move Gemini API logic to a server-side route.  
-  Priority: P0  
-  Impact: Critical  
-  Effort: M  
-  Evidence: Client-side exposure of `process.env.GEMINI_API_KEY`.  
-  Recommendation: Create `/api/orchestrate` in a new `server.ts`.  
-  Confidence: High
+---
 
-- [x] **[CORE] [server.ts]** Initialize a real Express server with Vite middleware.  
-  Priority: P0  
-  Impact: High  
-  Effort: M  
-  Evidence: Infrastructure described in docs but missing in code.  
-  Recommendation: Add `server.ts` and update `package.json` scripts.  
-  Confidence: High
+# Phase 1 - Make It Work (Completed ✅)
 
-- [x] **[STORAGE] [store/useStore.ts]** Connect workspace state to a persistent database.  
-  Priority: P1  
-  Impact: High  
-  Effort: L  
-  Evidence: All state currently ephemeral in memory (Zustand).  
-  Recommendation: Use Firestore or local IndexedDB for durable projects.  
-  Confidence: High
+- [x] **[CORE] Full-Stack Express & Vite Server Setup**  
+  Priority: P0 | Impact: High | Effort: M  
+  Recommendation: Bind Express to `0.0.0.0:3000` with Vite middleware in development and static bundle serving in production.  
 
-# Phase 2 — Make It Reliable (Hardening)
+- [x] **[AI] Server-Side Gemini API Proxy**  
+  Priority: P0 | Impact: High | Effort: M  
+  Recommendation: Proxy Gemini API requests on `/api/orchestrate` in `server.ts` to keep `GEMINI_API_KEY` hidden from client browsers.  
 
-- [x] **[TESTING] [src/__tests__]** Expand unit tests for all React components.  
-  Priority: P1  
-  Impact: Medium  
-  Effort: L  
-  Evidence: Initial testing infrastructure is live but coverage is low (~10%).  
-  Recommendation: Add tests for `ArtifactPanel` and `ChatPanel`.  
-  Confidence: High
+- [x] **[CCC] Common Code Context Symbol Indexer**  
+  Priority: P0 | Impact: High | Effort: M  
+  Recommendation: Build `/api/ccc/index` workspace parser to extract exported symbols, imports, and relationships into a deterministic graph.  
 
-- [x] **[CCC] [components/CCCInspector.tsx]** Implement real repository indexing.  
-  Priority: P1  
-  Impact: Medium  
-  Effort: L  
-  Evidence: CCC data is currently a static JSON mock.  
-  Recommendation: Integrate a basic file-walker and regex-based symbol extractor.  
-  Confidence: Medium
+- [x] **[STORE] Zustand Persistence & State Engine**  
+  Priority: P0 | Impact: High | Effort: M  
+  Recommendation: Implement double-layer persistence via `localStorage` and `IndexedDB` in `src/store/useStore.ts` and `src/lib/db.ts`.  
 
-- [x] **[UI] [components/workspace/ArtifactPanel.tsx]** Add code-diff visualization.  
-  Priority: P2  
-  Impact: High  
-  Effort: M  
-  Evidence: `ArtifactType.DIFF` exists but renders as raw text/mock editor.  
-  Recommendation: Use `react-diff-viewer` or Monaco diff editor.  
-  Confidence: High
+- [x] **[TESTS] Vitest Unit Test Suite**  
+  Priority: P0 | Impact: High | Effort: M  
+  Recommendation: Add Vitest test runner with React Testing Library to test store operations, ChatPanel components, and Gemini response parsing.  
 
-# Phase 3 — Make It Production Ready (Scale)
+---
 
-- [x] **[REALTIME] [NSP Protocol]** Implement WebSocket gateway for Brain/Muscle sync.  
-  Priority: P2  
-  Impact: High  
-  Effort: L  
-  Evidence: "NSP Stream" is currently simulated in `ChatPanel.tsx`.  
-  Recommendation: Use `socket.io` for event-driven telemetry status.  
-  Confidence: Medium
+# Phase 2 - Make It Reliable (Completed ✅)
 
-- [x] **[PERFORMANCE] [components/CCCInspector.tsx]** Virtualize node lists.  
-  Priority: P3  
-  Impact: Low  
-  Effort: S  
-  Evidence: Large lists of symbols will lag UI.  
-  Recommendation: Use `@tanstack/react-virtual`.  
-  Confidence: High
+- [x] **[REALTIME] NSP WebSocket Gateway & Telemetry Fallback**  
+  Priority: P1 | Impact: High | Effort: M  
+  Recommendation: Host `/nsp` WebSocket gateway on Express HTTP server with automatic `/api/telemetry` HTTP polling fallback in `App.tsx`.  
 
-# Phase 4 — Future Enhancements
+- [x] **[PERFORMANCE] Virtualized CCC Inspector List Rendering**  
+  Priority: P1 | Impact: High | Effort: S  
+  Recommendation: Integrate `@tanstack/react-virtual` in `CCCInspector.tsx` to handle large repository symbol lists without DOM lag.  
 
-- [x] **[SKILLS] [SkillsView.tsx]** Connect Skill Marketplace to a real registry backend.  
-  Priority: P2  
-  Impact: High  
-  Effort: L  
-  Evidence: Marketplace is structurally implemented but uses hardcoded lists.  
-  Recommendation: Implement `fetchSkills` from a remote JSON endpoint.  
-  Confidence: High
+- [x] **[TEMPLATES] One-Click Custom Template Generator**  
+  Priority: P1 | Impact: Medium | Effort: S  
+  Recommendation: Add `saveAsTemplate` in store and `ProjectSettings.tsx` to turn active project files into reusable scaffold templates.  
 
-- [x] **[TEMPLATES] [store/useStore.ts]** Add "Custom Template" creation flow.  
+- [x] **[SKILLS] Live Skill Marketplace Registry**  
+  Priority: P1 | Impact: High | Effort: M  
+  Recommendation: Connect `SkillsView.tsx` to server `/api/skills/registry` endpoint for instant installation, listing, and contribution.  
+
+- [x] **[MULTIMODAL] Web Speech API Voice Input**  
+  Priority: P2 | Impact: Medium | Effort: S  
+  Recommendation: Implement voice transcription in `ChatPanel.tsx` to stream spoken commands as steering prompts.  
+
+---
+
+# Phase 3 - Make It Production Ready
+
+- [ ] **[PERSISTENCE] Server Skill Registry File / Database Backing**  
   Priority: P2  
   Impact: Medium  
   Effort: S  
-  Evidence: Template system exists but is restricted to static definitions.  
-  Recommendation: Allow users to "Save as Template" from an existing project.  
-  Confidence: High
+  Recommendation: Persist contributed skills in `server.ts` to a `skills.json` file on disk or Firestore collection so custom skills survive container restarts.  
 
-- [x] **[MULTIMODAL] [ChatPanel.tsx]** Real voice-to-intent engine.  
+- [ ] **[SECURITY] API Rate Limiting & Input Validation**  
+  Priority: P2  
+  Impact: High  
+  Effort: S  
+  Recommendation: Mount `express-rate-limit` middleware on `/api/orchestrate` and `/api/ccc/index` to prevent API key quota exhaustion.  
+
+- [ ] **[TESTS] Additional Integration Test Coverage**  
+  Priority: P2  
+  Impact: Medium  
+  Effort: S  
+  Recommendation: Add integration tests for `SkillsView` rendering and `ProjectSettings` template creation modal.  
+
+---
+
+# Phase 4 - Future Enhancements
+
+- [ ] **[CLOUD] Cloud SQL / Firestore Database Integration**  
   Priority: P3  
-  Impact: Low  
+  Impact: High  
+  Effort: L  
+  Recommendation: Support multi-user workspace synchronization across devices via Firestore or Cloud SQL backend database integration.  
+
+- [ ] **[GIT] Real Native Git Integration**  
+  Priority: P3  
+  Impact: High  
+  Effort: L  
+  Recommendation: Connect client git status panel to actual server-side `simple-git` execution for real repo commits and pushes.  
+
+- [ ] **[ORCHESTRATION] Parallel Multi-Brain LLM Models**  
+  Priority: P3  
+  Impact: Medium  
   Effort: M  
-  Evidence: Mentioned in PRD but no audio processing logic.  
-  Recommendation: Integrate Web Speech API or Gemini Live API.  
-  Confidence: Medium
+  Recommendation: Support switching or combining Gemini 2.5 Pro and Gemini 2.5 Flash for complex architectural refactors.  

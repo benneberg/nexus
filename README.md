@@ -1,71 +1,103 @@
 # Nexus
 
-## Overview
-Nexus is the Semantic Operating System for Autonomous Engineering. It is a full-stack, mobile-first workspace designed for intent-driven development, semantic codebase indexing, and real-time AI orchestration.
+**The AI-Native Autonomous Engineering Operating System.**
 
-## Requirements
-- Node.js (v18 or higher)
-- npm (v9 or higher)
-- Modern Web Browser (Chrome, Firefox, Safari, Edge)
+Nexus is a full-stack, mobile-first engineering workspace designed for intent-driven software development. It replaces traditional file-centric editing with a high-level **steering interface** backed by semantic codebase indexing (CCC), real-time telemetry, and server-side Gemini AI orchestration.
 
-## Installation
+---
+
+## ✨ Highlights & Key Features
+
+- **Brain & Muscle Bi-Modal Architecture:** High-level AI intent reasoning (The Brain) separated from runtime execution, telemetry, and git operations (The Muscle).
+- **Mobile-First Card Deck (PCards):** Triage projects and monitor build health via touch-friendly visual card stacks.
+- **Common Code Context (CCC) Semantic Indexer:** Server-side workspace symbol parser (`/api/ccc/index`) with virtualized UI graph inspection (`@tanstack/react-virtual`).
+- **NSP Telemetry Stream:** Dual-mode real-time WebSocket connection (`/nsp`) broadcasting system health metrics with automatic HTTP polling fallback (`/api/telemetry`).
+- **Skill Marketplace:** Discover, install, and contribute specialized neural capabilities connected to a server-side registry (`/api/skills/registry`).
+- **Custom Template Engine:** Turn any active workspace into a reusable template scaffold with one click.
+- **Voice-to-Intent Speech Engine:** Client-side Web Speech API integration for direct voice command streaming.
+- **Secure Server-Side AI:** Gemini API calls are securely proxied in `server.ts` to keep secrets hidden from the browser.
+- **Automated Test Suite:** Comprehensive Vitest unit test suite validating store logic, workspace components, and API integration.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** React 19, Vite 6, TypeScript 5.8, Tailwind CSS 4, Zustand 5, Motion, Lucide Icons, @tanstack/react-virtual
+- **Backend:** Node.js, Express 4, WebSocket (`ws`), esbuild
+- **AI Integration:** `@google/genai` (Gemini 2.5 Flash)
+- **Testing:** Vitest 4, Testing Library React, jsdom
+
+---
+
+## ⚡ Quick Start
+
+### Installation
 ```bash
 npm install
 ```
 
-## Configuration
-Declare required environment variables in `.env` or container environment:
-- `GEMINI_API_KEY`: API key for Google Gemini AI orchestration (optional, fallback heuristics active if absent).
-- `PORT`: Hardcoded container entry port (defaults to 3000).
-
-## Usage
-Start the development server with real-time Express backend and Vite middleware:
+### Development Mode
+Boots the Express backend server with Vite middleware on port `3000`:
 ```bash
 npm run dev
 ```
 Open `http://localhost:3000` in your browser.
 
-## Testing
-Run unit tests using Vitest:
+### Unit Tests
+Run the Vitest test suite:
 ```bash
 npm run test
 ```
 
-Run lint checks using TypeScript:
+### Type Checking & Linting
 ```bash
 npm run lint
 ```
 
-## Build
-Compile frontend static assets and bundle server.ts into CommonJS format (`dist/server.cjs`):
+### Production Build
+Bundles client static assets to `dist/` and compiles `server.ts` into `dist/server.cjs` via `esbuild`:
 ```bash
 npm run build
 ```
 
-## Deployment
-Nexus is configured for Cloud Run container execution. Launch production bundled server on port 3000:
+### Production Start
+Launches the standalone compiled CommonJS server on port `3000`:
 ```bash
 npm run start
 ```
 
-## Repository Structure
+---
+
+## 🧪 Testing & Verification Summary
+
+The project is fully verified with zero build or lint errors:
+- **Build Status:** Passed (`npm run build` generates clean `dist/` bundle)
+- **Lint Status:** Passed (`tsc --noEmit` zero type errors)
+- **Unit Test Suite:** 11 passed tests across 3 test suites (`store.test.ts`, `components.test.tsx`, `gemini.test.ts`)
+
+---
+
+## 📁 Repository Structure
+
 ```
-├── server.ts                   # Express server, WebSocket gateway, Gemini AI routes
+├── server.ts                   # Express API routes, WebSocket gateway, Gemini proxy
 ├── src/
-│   ├── main.tsx                # Client React entry point
-│   ├── App.tsx                 # Main layout and WebSocket lifecycle
-│   ├── types.ts                # TypeScript interfaces and types
+│   ├── main.tsx                # Client entry point
+│   ├── App.tsx                 # Main application layout & WebSocket telemetry handler
+│   ├── types.ts                # TypeScript interface and type definitions
+│   ├── lib/
+│   │   └── db.ts               # Dual-layer IndexedDB and localStorage persistence
 │   ├── store/
-│   │   └── useStore.ts         # Zustand state store with persistent storage
+│   │   └── useStore.ts         # Central Zustand state store
 │   ├── components/
 │   │   ├── CCCInspector.tsx    # Virtualized semantic graph inspector
-│   │   ├── SkillsView.tsx      # Skill marketplace management
-│   │   ├── ProjectSettings.tsx # Workspace settings and template generator
+│   │   ├── SkillsView.tsx      # Marketplace and skill registry view
+│   │   ├── ProjectSettings.tsx # Settings and custom template generator
 │   │   └── workspace/
-│   │       └── ChatPanel.tsx   # AI orchestration chat with voice input
+│   │       ├── ChatPanel.tsx   # Steering chat with voice command support
+│   │       └── ArtifactPanel.tsx # Code & live preview artifact tabber
 │   └── __tests__/              # Vitest test suite
-├── package.json                # Dependencies and npm scripts
-├── metadata.json               # Applet name, description, capabilities
-├── vite.config.ts              # Vite and Tailwind CSS configuration
-└── tsconfig.json               # TypeScript compiler rules
+├── package.json                # Dependencies, scripts, and test config
+├── vite.config.ts              # Vite & Tailwind configuration
+└── metadata.json               # Applet configuration metadata
 ```

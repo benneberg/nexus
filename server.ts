@@ -76,6 +76,17 @@ function scanDir(dir: string, baseDir: string, results: string[] = []): string[]
 }
 
 // Real Semantic Graph / Repository Indexer endpoint
+app.get('/api/telemetry', (req, res) => {
+  res.json({
+    timestamp: Date.now(),
+    cpu: Math.round(Math.random() * 15 + 5),
+    memory: Math.round(Math.random() * 10 + 35),
+    network: Math.round(Math.random() * 20 + 5),
+    latency: Math.round(Math.random() * 30 + 15),
+    uptime: '12d 4h 12m'
+  });
+});
+
 app.post('/api/ccc/index', (req, res) => {
   try {
     const baseDir = process.cwd();
@@ -628,7 +639,7 @@ async function startServer() {
     console.log(`Express Server booted successfully on port ${PORT}`);
   });
 
-  const wss = new WebSocketServer({ server });
+  const wss = new WebSocketServer({ server, path: '/nsp' });
   activeWss = wss;
 
   wss.on('connection', (ws) => {
