@@ -14,6 +14,9 @@ interface AppActions {
   addSkill: (skill: Skill) => void;
   removeSkill: (skillId: string) => void;
   installSkill: (skillId: string) => void;
+  toggleSkillActive: (skillId: string) => void;
+  updateSkillToLatest: (skillId: string) => void;
+  checkSkillUpdates: () => void;
   contributeSkill: (skill: Omit<Skill, 'id' | 'downloads' | 'rating'>) => void;
   updateCCC: (projectId: string, ir: CCCIR) => void;
   setActiveView: (view: ViewType) => void;
@@ -116,8 +119,11 @@ export const useStore = create<AppState & AppActions>((set) => ({
       description: 'Advanced React patterns and hooks orchestration',
       version: '1.2.0',
       author: 'Nexus Core',
+      category: 'Frontend',
+      enabled: true,
       triggers: ['UI', 'component', 'hook'],
       tools: ['Filesystem', 'Linter'],
+      dependencies: ['react', 'react-dom', 'lucide-react'],
       retrievalRules: ['src/**/*.tsx'],
       workflows: ['generate_component'],
       validations: ['Typecheck'],
@@ -134,8 +140,10 @@ export const useStore = create<AppState & AppActions>((set) => ({
       downloads: 9800,
       rating: 4.9,
       price: 'Free',
+      category: 'Git',
       triggers: ['github', 'clone', 'push', 'git', 'sync'],
       tools: ['GitClient', 'CredentialManager'],
+      dependencies: ['@octokit/rest', 'simple-git'],
       retrievalRules: ['.github/**/*', '.git/**/*'],
       workflows: ['clone_repository', 'push_code_changes'],
       validations: ['GitAuth', 'BranchSync'],
@@ -150,8 +158,10 @@ export const useStore = create<AppState & AppActions>((set) => ({
       downloads: 12400,
       rating: 4.9,
       price: 'Free',
+      category: 'Frontend',
       triggers: ['style', 'css', 'layout'],
       tools: ['FileEditor'],
+      dependencies: ['tailwindcss', 'clsx', 'tailwind-merge'],
       retrievalRules: ['**/*.css', 'tailwind.config.ts'],
       workflows: ['apply_style'],
       validations: ['CSSLint'],
@@ -166,8 +176,10 @@ export const useStore = create<AppState & AppActions>((set) => ({
       downloads: 5400,
       rating: 4.8,
       price: 'Free',
+      category: 'Git',
       triggers: ['rebase', 'merge', 'git'],
       tools: ['GitClient'],
+      dependencies: ['simple-git', 'diff'],
       retrievalRules: ['.git/**/*'],
       workflows: ['resolve_conflicts'],
       validations: ['GitStatus'],
@@ -182,8 +194,10 @@ export const useStore = create<AppState & AppActions>((set) => ({
       downloads: 8200,
       rating: 4.7,
       price: '$2/mo',
+      category: 'Cloud',
       triggers: ['docker', 'container', 'deploy'],
       tools: ['DockerEngine'],
+      dependencies: ['docker-cli', 'yaml'],
       retrievalRules: ['Dockerfile', 'docker-compose.yml'],
       workflows: ['generate_dockerfile'],
       validations: ['DockerLinter'],
@@ -198,8 +212,10 @@ export const useStore = create<AppState & AppActions>((set) => ({
       downloads: 15400,
       rating: 4.9,
       price: 'Free',
+      category: 'Backend',
       triggers: ['schema', 'database', 'sql'],
       tools: ['DatabaseClient'],
+      dependencies: ['@prisma/client', 'pg'],
       retrievalRules: ['schema.sql', '**.prisma'],
       workflows: ['generate_schema'],
       validations: ['SQLCheck'],
@@ -507,6 +523,7 @@ export const useStore = create<AppState & AppActions>((set) => ({
   installSkill: (skillId) => set((state) => {
     const skill = state.marketplaceSkills.find(s => s.id === skillId);
     if (skill && !state.skills.find(s => s.id === skillId)) {
+      const installedSkill = { ...skill, enabled: true };
       const newActivity = {
         id: `act-${Date.now()}`,
         text: `Installed specialized capability "${skill.name}" (v${skill.version})`,
@@ -514,11 +531,54 @@ export const useStore = create<AppState & AppActions>((set) => ({
         type: 'skill' as const
       };
       return { 
-        skills: [...state.skills, skill],
+        skills: [...state.skills, installedSkill],
         recentActivity: [newActivity, ...state.recentActivity]
       };
     }
     return state;
+  }),
+  toggleSkillActive: (skillId) => set((state) => ({
+    skills: state.skills.map(s => 
+      s.id === skillId 
+        ? { ...s, enabled: s.enabled === false ? true : false } 
+        : s
+    )
+  })),
+  updateSkillToLatest: (skillId) => set((state) => {
+    const installed = state.skills.find(s => s.id === skillId);
+    const mkt = state.marketplaceSkills.find(s => s.id === skillId);
+    if (!installed || !mkt) return state;
+
+    const updatedSkill: Skill = {
+      ...installed,
+      ...mkt,
+      version: mkt.version,
+      latestVersion: undefined,
+      enabled: installed.enabled !== false,
+      updatedAt: Date.now()
+    };
+
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      text: `Updated skill "${installed.name}" from v${installed.version} to v${mkt.version}`,
+      timestamp: Date.now(),
+      type: 'skill' as const
+    };
+
+    return {
+      skills: state.skills.map(s => s.id === skillId ? updatedSkill : s),
+      recentActivity: [newActivity, ...state.recentActivity]
+    };
+  }),
+  checkSkillUpdates: () => set((state) => {
+    const updatedSkills = state.skills.map(skill => {
+      const mkt = state.marketplaceSkills.find(m => m.id === skill.id);
+      if (mkt && mkt.version !== skill.version) {
+        return { ...skill, latestVersion: mkt.version };
+      }
+      return skill;
+    });
+    return { skills: updatedSkills };
   }),
   contributeSkill: async (skillData) => {
     try {

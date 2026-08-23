@@ -228,8 +228,10 @@ let serverSkills = [
     downloads: 9800,
     rating: 4.9,
     price: 'Free',
+    category: 'Git',
     triggers: ['github', 'clone', 'push', 'git', 'sync'],
     tools: ['GitClient', 'CredentialManager'],
+    dependencies: ['@octokit/rest', 'simple-git'],
     retrievalRules: ['.github/**/*', '.git/**/*'],
     workflows: ['clone_repository', 'push_code_changes'],
     validations: ['GitAuth', 'BranchSync'],
@@ -244,8 +246,10 @@ let serverSkills = [
     downloads: 12400,
     rating: 4.9,
     price: 'Free',
+    category: 'Frontend',
     triggers: ['style', 'css', 'layout'],
     tools: ['FileEditor'],
+    dependencies: ['tailwindcss', 'clsx', 'tailwind-merge'],
     retrievalRules: ['**/*.css', 'tailwind.config.ts'],
     workflows: ['apply_style'],
     validations: ['CSSLint'],
@@ -260,8 +264,10 @@ let serverSkills = [
     downloads: 5400,
     rating: 4.8,
     price: 'Free',
+    category: 'Git',
     triggers: ['rebase', 'merge', 'git'],
     tools: ['GitClient'],
+    dependencies: ['simple-git', 'diff'],
     retrievalRules: ['.git/**/*'],
     workflows: ['resolve_conflicts'],
     validations: ['GitStatus'],
@@ -276,8 +282,10 @@ let serverSkills = [
     downloads: 8200,
     rating: 4.7,
     price: '$2/mo',
+    category: 'Cloud',
     triggers: ['docker', 'container', 'deploy'],
     tools: ['DockerEngine'],
+    dependencies: ['docker-cli', 'yaml'],
     retrievalRules: ['Dockerfile', 'docker-compose.yml'],
     workflows: ['generate_dockerfile'],
     validations: ['DockerLinter'],
@@ -292,8 +300,10 @@ let serverSkills = [
     downloads: 15400,
     rating: 4.9,
     price: 'Free',
+    category: 'Backend',
     triggers: ['schema', 'database', 'sql'],
     tools: ['DatabaseClient'],
+    dependencies: ['@prisma/client', 'pg'],
     retrievalRules: ['prisma/schema.prisma', 'src/db/**/*'],
     workflows: ['generate_schema'],
     validations: ['PrismaValidate'],
@@ -311,7 +321,7 @@ app.get('/api/skills/registry', (req, res) => {
 
 app.post('/api/skills/registry', (req, res) => {
   try {
-    const { name, description, version, author, triggers, tools } = req.body;
+    const { name, description, version, author, category, triggers, tools, dependencies } = req.body;
     if (!name || !description) {
       return res.status(400).json({ error: 'Name and description are required' });
     }
@@ -321,11 +331,13 @@ app.post('/api/skills/registry', (req, res) => {
       description,
       version: version || '1.0.0',
       author: author || 'Agent Smith',
+      category: category || 'General',
       downloads: 0,
       rating: 5.0,
       price: 'Free',
       triggers: Array.isArray(triggers) ? triggers : (triggers ? triggers.split(',').map((t: string) => t.trim()) : []),
       tools: Array.isArray(tools) ? tools : (tools ? tools.split(',').map((t: string) => t.trim()) : []),
+      dependencies: Array.isArray(dependencies) ? dependencies : (dependencies ? dependencies.split(',').map((d: string) => d.trim()) : []),
       retrievalRules: [],
       workflows: [],
       validations: [],

@@ -82,6 +82,11 @@ export interface Skill {
   workflows: string[];
   validations: string[];
   prompts: string[];
+  dependencies?: string[];
+  enabled?: boolean;
+  latestVersion?: string;
+  changelog?: string;
+  updatedAt?: number;
 }
 
 export interface TemplateFile {
