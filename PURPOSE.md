@@ -49,12 +49,13 @@ Developers who rely on LLMs for code generation and find manual file tree naviga
 - **CCC (Common Code Context) Indexer:** Real server-side symbol extractor (`/api/ccc/index`) mapping TypeScript/JavaScript workspace files to a graph structure with virtualized display (`@tanstack/react-virtual`).
 - **Project Scaffold Blueprints:** Instant multi-file template instantiation for React PWAs, FastAPI backends, Chrome Extensions, and Data Science hubs.
 - **Custom Template Engine:** One-click custom blueprint generation from active project workspaces.
-- **Skill Marketplace:** Real server-side skill registry (`/api/skills/registry`) supporting installation, discovery, and contribution.
+- **Skill Marketplace:** Real server-side skill registry (`/api/skills/registry`) with `skills.json` file persistence, supporting installation, discovery, and contribution.
+- **Security & Rate Limiting:** API rate limiters (`express-rate-limit`) applied to orchestration and CCC endpoints to prevent quota exhaustion.
 - **Voice-to-Intent Speech Engine:** Integrated client-side Web Speech API voice command streaming.
 - **Orchestration Chat:** Real-time AI steering interface proxying Gemini API calls server-side.
 - **NSP Telemetry Stream:** Dual-mode real-time WebSocket telemetry with polling fallback.
-- **Automated Testing Suite:** Vitest unit test suite covering store operations, component panels, and Gemini API parsing.
+- **Automated Testing Suite:** Vitest unit test suite covering store operations, component panels, SkillsView, and Gemini API parsing.
 
 ### Inferred & Future Roadmap
-- **Cloud Database Persistence:** Moving in-memory skill registries to Cloud SQL / Firestore for enterprise multi-tenant sync.
+- **Cloud Database Persistence:** Moving file-backed storage (`skills.json`) to Cloud SQL / Firestore for enterprise multi-tenant sync.
 - **Multi-Brain Orchestration:** Connecting multiple specialized LLMs in parallel.

@@ -40,9 +40,11 @@ Nexus is structured as a full-stack, bi-modal application combining a Node.js/Ex
 
 ### Server Layer (`server.ts`)
 - **Express HTTP API Router:** Serves static frontend assets in production and routes API endpoints (`/api/orchestrate`, `/api/ccc/index`, `/api/skills/registry`, `/api/telemetry`).
+- **Security & Rate Limiting:** Mounts `express-rate-limit` middleware on critical AI and search routes to prevent quota exhaustion and API abuse.
 - **Gemini Proxy Engine:** Securely initializes `@google/genai` using `process.env.GEMINI_API_KEY`. It processes natural language steering prompts, structures JSON responses, and returns architectural summaries, steps, and generated code artifacts to the client without exposing keys.
 - **NSP Telemetry WebSocket Gateway:** Hosts a WebSocket server (`/nsp`) that broadcasts system health metrics and real-time skill registration events.
 - **CCC Semantic Indexer (`/api/ccc/index`):** Parses the server workspace filesystem to build a deterministic Common Code Context symbol graph for visual inspection.
+- **Persistent Skill Registry:** Maintains a JSON file-backed (`skills.json`) state for custom skill installations and definitions.
 
 ### Client Layer (`src/`)
 - **Zustand State Engine (`src/store/useStore.ts`):** Manages global state across projects, active views, artifacts, messages, skills, custom templates, and telemetry. Features double-layer persistence via `localStorage` and `IndexedDB`.
@@ -88,4 +90,5 @@ Nexus is structured as a full-stack, bi-modal application combining a Node.js/Ex
 | :--- | :--- | :--- |
 | **WebSocket Connection Drops** | Telemetry stream interruption | Automatic fallback to HTTP `/api/telemetry` polling in `App.tsx`. |
 | **Missing GEMINI_API_KEY** | Orchestration failure | Server-side fallback heuristics return structured mock responses with explicit warnings when API key is unconfigured. |
+| **API Quota Exhaustion** | Backend service interruption | Application of `express-rate-limit` on orchestration API routes. |
 | **Large Symbol Graph Bloat** | DOM lag during codebase inspection | `@tanstack/react-virtual` virtualized rendering limits DOM nodes in `CCCInspector.tsx`. |

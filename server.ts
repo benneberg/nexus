@@ -5,6 +5,7 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
 import { WebSocketServer } from 'ws';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
@@ -12,6 +13,25 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+
+// Set up rate limiters
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' }
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // Limit each IP to 20 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Rate limit exceeded for AI endpoints.' }
+});
+
+// Apply rate limiters to specific routes later...
 
 // Initialize Gemini SDK with lazy check
 let aiClient: GoogleGenAI | null = null;
@@ -87,7 +107,7 @@ app.get('/api/telemetry', (req, res) => {
   });
 });
 
-app.post('/api/ccc/index', (req, res) => {
+app.post('/api/ccc/index', apiLimiter, (req, res) => {
   try {
     const baseDir = process.cwd();
     const relativeFiles = scanDir(baseDir, baseDir);
@@ -218,6 +238,8 @@ app.post('/api/ccc/index', (req, res) => {
 });
 
 // Server-side database of skills for real marketplace sync
+const SKILLS_FILE_PATH = path.join(process.cwd(), 'skills.json');
+
 let serverSkills = [
   {
     id: 'github-integration',
@@ -311,15 +333,31 @@ let serverSkills = [
   }
 ];
 
+if (fs.existsSync(SKILLS_FILE_PATH)) {
+  try {
+    const data = fs.readFileSync(SKILLS_FILE_PATH, 'utf8');
+    serverSkills = JSON.parse(data);
+  } catch (err) {
+    console.error('Error loading skills.json:', err);
+  }
+} else {
+  // Write default skills if the file does not exist
+  try {
+    fs.writeFileSync(SKILLS_FILE_PATH, JSON.stringify(serverSkills, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error writing skills.json:', err);
+  }
+}
+
 // Global reference for wss broadcast from endpoints
 let activeWss: any = null;
 
 // Skills registry endpoints
-app.get('/api/skills/registry', (req, res) => {
+app.get('/api/skills/registry', apiLimiter, (req, res) => {
   res.json(serverSkills);
 });
 
-app.post('/api/skills/registry', (req, res) => {
+app.post('/api/skills/registry', apiLimiter, (req, res) => {
   try {
     const { name, description, version, author, category, triggers, tools, dependencies } = req.body;
     if (!name || !description) {
@@ -345,6 +383,12 @@ app.post('/api/skills/registry', (req, res) => {
     };
     serverSkills.unshift(newSkill);
     
+    try {
+      fs.writeFileSync(SKILLS_FILE_PATH, JSON.stringify(serverSkills, null, 2), 'utf8');
+    } catch (err) {
+      console.error('Error saving new skill to skills.json:', err);
+    }
+    
     // Broadcast skill registration event to all websocket connections
     if (activeWss) {
       activeWss.clients.forEach((client: any) => {
@@ -364,7 +408,7 @@ app.post('/api/skills/registry', (req, res) => {
 });
 
 // AI Orchestration endpoint
-app.post('/api/orchestrate', async (req, res) => {
+app.post('/api/orchestrate', aiLimiter, async (req, res) => {
   const { prompt, context } = req.body;
 
   if (!prompt || typeof prompt !== 'string') {

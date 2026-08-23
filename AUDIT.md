@@ -27,7 +27,7 @@ Nexus is a well-architected, production-ready AI engineering workspace prototype
 - **Port Isolation:** Express server explicitly binds to `0.0.0.0` on port `3000` as mandated by infrastructure specifications.
 
 ### Findings & Recommendations
-- **Input Sanitization:** User prompts sent to `/api/orchestrate` are passed directly to Gemini model prompts. While acceptable for developer workspaces, adding rate limiting (`express-rate-limit`) on public API routes is recommended before public deployment.
+- **Input Sanitization:** API rate limiters (`express-rate-limit`) are now mounted on `/api/orchestrate` and `/api/ccc/index` to prevent quota exhaustion and API spam.
 - **CORS Policy:** Express currently relies on same-origin serving. If cross-origin client usage is introduced, strict origin allowlists should be added.
 
 ---
@@ -60,9 +60,9 @@ Nexus is a well-architected, production-ready AI engineering workspace prototype
 
 | Risk Area | Severity | Impact | Mitigation Status |
 | :--- | :--- | :--- | :--- |
-| **API Quota Exhaustion** | Low | Gemini API calls fail under heavy load. | Server catches errors gracefully and returns fallback heuristic responses. |
+| **API Quota Exhaustion** | Low | Gemini API calls fail under heavy load. | Mitigated via `express-rate-limit` on orchestration routes. |
 | **WebSocket Proxy Disconnect** | Medium | Telemetry stream drops in restricted environments. | Fully mitigated by automatic `/api/telemetry` HTTP polling fallback. |
-| **In-Memory Skill Registry Reset**| Low | Skills registered via POST reset on container reboot. | State persists on client side; server persistence to Firestore/Cloud SQL planned for Phase 3. |
+| **Skill Registry Reset**| Low | Skills registered via POST could reset. | Mitigated by `skills.json` file-backed storage on the server. |
 
 ---
 
@@ -72,7 +72,7 @@ Nexus is a well-architected, production-ready AI engineering workspace prototype
 
 - **Build Pipeline:** Verified clean (`npm run build` generates `dist/` and `dist/server.cjs`).
 - **Dev Server:** Verified operational on port 3000 (`npm run dev`).
-- **Tests:** 100% passing (`npm run test`).
+- **Tests:** 100% passing (`npm run test`), 21 passing tests across 5 suites.
 - **Type Safety:** 100% passing (`npm run lint`).
 - **Production Command:** Operational (`npm run start`).
 
@@ -87,9 +87,8 @@ During deep code inspection, the following findings were cataloged:
 - **Fix Applied:** Configured explicit path `/nsp` on `WebSocketServer` and implemented a 5-second HTTP polling fallback (`/api/telemetry`) in `App.tsx`.
 - **Issue:** IndexedDB unhandled error noise in non-browser unit test runner environments.
 - **Fix Applied:** Updated `src/lib/db.ts` to perform quiet fallback when `indexedDB` is undefined.
+- **Issue:** Skill registrations were resetting across container reboots.
+- **Fix Applied:** Persisted skill registry state to `skills.json` file in Phase 3.
 
-### 2. Code Smells & Dead Code
-- **Minor In-Memory Storage:** The skill marketplace array in `server.ts` is initialized in-memory. While client Zustand stores back it up to `localStorage` and `IndexedDB`, adding a persistent JSON file or database backing on the server will improve multi-user consistency.
-
-### 3. Mocks & Stubs
+### 2. Mocks & Stubs
 - Git commit/push/fetch actions in `src/store/useStore.ts` simulate git operations by modifying local state and incrementing commit counts. This is intentional for the client prototype UI.

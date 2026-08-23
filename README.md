@@ -12,11 +12,11 @@ Nexus is a full-stack, mobile-first engineering workspace designed for intent-dr
 - **Mobile-First Card Deck (PCards):** Triage projects and monitor build health via touch-friendly visual card stacks.
 - **Common Code Context (CCC) Semantic Indexer:** Server-side workspace symbol parser (`/api/ccc/index`) with virtualized UI graph inspection (`@tanstack/react-virtual`).
 - **NSP Telemetry Stream:** Dual-mode real-time WebSocket connection (`/nsp`) broadcasting system health metrics with automatic HTTP polling fallback (`/api/telemetry`).
-- **Skill Marketplace:** Discover, install, and contribute specialized neural capabilities connected to a server-side registry (`/api/skills/registry`).
+- **Skill Marketplace:** Discover, install, and contribute specialized neural capabilities connected to a persistent server-side registry (`/api/skills/registry` via `skills.json`).
 - **Custom Template Engine:** Turn any active workspace into a reusable template scaffold with one click.
 - **Voice-to-Intent Speech Engine:** Client-side Web Speech API integration for direct voice command streaming.
-- **Secure Server-Side AI:** Gemini API calls are securely proxied in `server.ts` to keep secrets hidden from the browser.
-- **Automated Test Suite:** Comprehensive Vitest unit test suite validating store logic, workspace components, and API integration.
+- **Secure Server-Side AI:** Gemini API calls are securely proxied in `server.ts` to keep secrets hidden from the browser, protected by `express-rate-limit` to prevent quota exhaustion.
+- **Automated Test Suite:** Comprehensive Vitest unit test suite validating store logic, workspace components, SkillsView, and API integration.
 
 ---
 
@@ -73,7 +73,7 @@ npm run start
 The project is fully verified with zero build or lint errors:
 - **Build Status:** Passed (`npm run build` generates clean `dist/` bundle)
 - **Lint Status:** Passed (`tsc --noEmit` zero type errors)
-- **Unit Test Suite:** 11 passed tests across 3 test suites (`store.test.ts`, `components.test.tsx`, `gemini.test.ts`)
+- **Unit Test Suite:** 21 passed tests across 5 test suites (`store.test.ts`, `components.test.tsx`, `SkillsView.test.tsx`, `cccQueryEngine.test.ts`, `gemini.test.ts`)
 
 ---
 
