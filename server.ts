@@ -12,6 +12,9 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// Trust the first proxy in front of Express (Cloud Run / NGINX)
+app.set('trust proxy', 1);
+
 app.use(express.json());
 
 // Set up rate limiters
