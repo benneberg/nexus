@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Send, Loader2, Binary, Shield, Zap, Cpu, Activity, Plus,
   Bold, Italic, Code as CodeIcon, Link as LinkIcon, Sparkles, LayoutGrid,
-  Mic, MicOff
+  Mic, MicOff, Brain, ChevronDown, Check, GitFork, ShieldAlert, Sparkle
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { Message, ArtifactType } from '../../types';
@@ -10,8 +10,22 @@ import ReactMarkdown from 'react-markdown';
 import { cn } from '../../lib/utils';
 import { generateOrchestration } from '../../lib/gemini';
 
+const BRAIN_MODES = [
+  { id: 'flash', name: 'Flash 2.5', icon: Zap, desc: 'Ultra-fast low-latency synthesis', model: 'gemini-2.5-flash' },
+  { id: 'deep-reasoning', name: 'Deep Reasoning', icon: Brain, desc: 'High thinking-budget deliberation', model: 'gemini-2.5-pro' },
+  { id: 'multi-brain', name: 'Multi-Brain Consensus', icon: GitFork, desc: 'Parallel 3-brain synthesis & critique', model: 'gemini-2.5-pro' },
+  { id: 'security-auditor', name: 'Security Auditor', icon: ShieldAlert, desc: 'Strict vulnerability & policy review', model: 'gemini-2.5-pro' },
+];
+
+const MODELS = [
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' }
+];
+
 const ChatMessage = ({ msg }: { msg: Message }) => {
   const [showMetrics, setShowMetrics] = useState(false);
+  const [showMultiBrainTrace, setShowMultiBrainTrace] = useState(false);
 
   return (
     <div className={cn(
@@ -22,7 +36,12 @@ const ChatMessage = ({ msg }: { msg: Message }) => {
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">
             {msg.role === 'user' ? 'Operator' : 'Orchestrator'}
           </span>
-          {msg.role === 'assistant' && <Activity className="w-2.5 h-2.5 text-[#F27D26]" />}
+          {msg.role === 'assistant' && (
+            <span className="flex items-center gap-1 text-[9px] font-mono text-[#F27D26] bg-[#F27D26]/10 px-2 py-0.5 rounded border border-[#F27D26]/20">
+              <Activity className="w-2.5 h-2.5" />
+              {msg.brainMode ? msg.brainMode.toUpperCase() : 'FLASH'}
+            </span>
+          )}
       </div>
       
       {msg.role !== 'system' && (
@@ -44,20 +63,71 @@ const ChatMessage = ({ msg }: { msg: Message }) => {
             <div className="flex flex-col gap-2">
               <button 
                 onClick={() => setShowMetrics(!showMetrics)}
-                className="text-[9px] font-mono text-white/10 hover:text-white/30 uppercase tracking-widest italic flex items-center gap-2 transition-colors w-fit"
+                className="text-[9px] font-mono text-white/20 hover:text-white/40 uppercase tracking-widest italic flex items-center gap-2 transition-colors w-fit"
               >
                 {showMetrics ? 'Hide Metrics' : 'Show Metrics'}
                 <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
               </button>
               
               {showMetrics && (
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[9px] font-mono text-[#F27D26]/60 uppercase tracking-tighter bg-white/[0.02] border border-white/5 px-3 py-1.5 rounded-lg">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[9px] font-mono text-[#F27D26]/80 uppercase tracking-tighter bg-white/[0.02] border border-white/5 px-3 py-1.5 rounded-lg">
                   <span className="flex items-center gap-1.5"><Cpu className="w-2.5 h-2.5" /> {msg.telemetry.model}</span>
                   <span className="flex items-center gap-1.5"><Activity className="w-2.5 h-2.5" /> {msg.telemetry.latency}ms</span>
                   <span className="flex items-center gap-1.5"><Binary className="w-2.5 h-2.5" /> {msg.telemetry.tokens} TKN</span>
                   {msg.telemetry.tools.length > 0 && (
                     <span className="flex items-center gap-1.5"><Shield className="w-2.5 h-2.5" /> {msg.telemetry.tools.join(', ')}</span>
                   )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Multi-Brain Consensus Breakdown */}
+      {msg.multiBrainTrace && (
+        <div className="w-full bg-[#080808] border border-primary/20 rounded-2xl p-4 mt-2">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <GitFork className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Multi-Brain Consensus Trace</span>
+            </div>
+            <button 
+              onClick={() => setShowMultiBrainTrace(!showMultiBrainTrace)}
+              className="text-[9px] font-mono text-white/40 hover:text-white"
+            >
+              {showMultiBrainTrace ? 'Collapse' : 'Expand Trace'}
+            </button>
+          </div>
+          
+          {showMultiBrainTrace && (
+            <div className="space-y-2 mt-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="p-2.5 bg-white/[0.02] border border-white/5 rounded-xl">
+                  <span className="text-[9px] font-black uppercase text-white/30 tracking-wider block">Architect / Planner</span>
+                  <span className="text-[11px] font-mono text-primary font-bold">{msg.multiBrainTrace.plannerModel || 'gemini-2.5-pro'}</span>
+                </div>
+                <div className="p-2.5 bg-white/[0.02] border border-white/5 rounded-xl">
+                  <span className="text-[9px] font-black uppercase text-white/30 tracking-wider block">Verifier / Synthesizer</span>
+                  <span className="text-[11px] font-mono text-primary font-bold">{msg.multiBrainTrace.verifierModel || 'gemini-2.5-flash'}</span>
+                </div>
+              </div>
+              {msg.multiBrainTrace.consensusStatus && (
+                <div className="p-2.5 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between">
+                  <span className="text-[9px] font-black uppercase text-white/30 tracking-wider">Consensus Status</span>
+                  <span className="text-[10px] font-mono text-green-400 font-bold uppercase">{msg.multiBrainTrace.consensusStatus}</span>
+                </div>
+              )}
+              {msg.multiBrainTrace.auditedAspects && msg.multiBrainTrace.auditedAspects.length > 0 && (
+                <div className="p-2.5 bg-white/[0.02] border border-white/5 rounded-xl">
+                  <span className="text-[9px] font-black uppercase text-white/30 tracking-wider block mb-1">Audited Aspects</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {msg.multiBrainTrace.auditedAspects.map((aspect, i) => (
+                      <span key={i} className="text-[9px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20">
+                        {aspect}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -106,13 +176,19 @@ const ChatMessage = ({ msg }: { msg: Message }) => {
     </div>
   );
 };
+
 export const ChatPanel = () => {
   const { 
     messages, addMessage, isOrchestrating, setOrchestrating, 
     updateStep, addArtifact, telemetryStream, currentProjectId,
     updatePCardInsight, pCards, projects, artifacts
   } = useStore();
+  
   const [input, setInput] = useState('');
+  const [selectedBrainMode, setSelectedBrainMode] = useState<string>('flash');
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
+  const [showBrainMenu, setShowBrainMenu] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -166,6 +242,8 @@ export const ChatPanel = () => {
 
   const project = projects.find(p => p.id === currentProjectId);
   const projectArtifacts = artifacts.filter(a => a.projectId === currentProjectId);
+
+  const activeModeConfig = BRAIN_MODES.find(m => m.id === selectedBrainMode) || BRAIN_MODES[0];
 
   const insertText = (before: string, after: string = '') => {
     const textarea = document.querySelector('textarea');
@@ -229,9 +307,10 @@ export const ChatPanel = () => {
     const assistantMessage: Message = {
       id: assistantMsgId,
       role: 'assistant',
-      content: 'Opening Synapse Bridge... Initiating distillation pipeline.',
+      brainMode: selectedBrainMode as any,
+      content: `Opening Synapse Bridge [${activeModeConfig.name}]... Initiating multi-brain distillation pipeline.`,
       steps: [
-        { id: 'planning', label: 'Intent Distillation', status: 'running', timestamp: Date.now() },
+        { id: 'planning', label: `${activeModeConfig.name} Intent Distillation`, status: 'running', timestamp: Date.now() },
         { id: 'retrieval', label: 'CCC Semantic Mapping', status: 'pending', timestamp: Date.now() },
         { id: 'builder', label: 'Muscle Instruction Generation', status: 'pending', timestamp: Date.now() },
         { id: 'verifier', label: 'Architectural Verification', status: 'pending', timestamp: Date.now() },
@@ -243,11 +322,14 @@ export const ChatPanel = () => {
 
     try {
       // 1. Planning & Retrieval
-      await new Promise(r => setTimeout(r, 600));
-      updateStep(assistantMsgId, 'planning', { status: 'completed', details: 'Cognition phase complete.' });
+      await new Promise(r => setTimeout(r, 400));
+      updateStep(assistantMsgId, 'planning', { status: 'completed', details: `${activeModeConfig.name} deliberation active.` });
       
       updateStep(assistantMsgId, 'retrieval', { status: 'running' });
-      const result = await generateOrchestration(messageContent);
+      const result = await generateOrchestration(messageContent, {
+        brainMode: selectedBrainMode as any,
+        model: selectedModel
+      });
       updateStep(assistantMsgId, 'retrieval', { 
         status: 'completed', 
         details: `${result.retrievalNodes?.length || 0} symbols mapped.` 
@@ -270,8 +352,7 @@ export const ChatPanel = () => {
             createdAt: Date.now(),
           });
           sessionArtifactIds.push(artifactId);
-          // Pause slightly between multiple artifacts for "distillation" feel
-          await new Promise(r => setTimeout(r, 400));
+          await new Promise(r => setTimeout(r, 200));
         }
       }
 
@@ -279,7 +360,7 @@ export const ChatPanel = () => {
 
       // 3. Verification
       updateStep(assistantMsgId, 'verifier', { status: 'running' });
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(r => setTimeout(r, 400));
       updateStep(assistantMsgId, 'verifier', { status: 'completed', details: 'pCard integrity verified.' });
 
       // 4. Update PCard Insight if available
@@ -287,10 +368,19 @@ export const ChatPanel = () => {
         updatePCardInsight(currentProjectId, pCards[currentProjectId][0].pcard_id, result.pCardUpdate.insight);
       }
 
+      // Mock multi-brain consensus trace if multi-brain mode was chosen
+      const multiBrainTrace = selectedBrainMode === 'multi-brain' ? [
+        { brainName: 'Architect Brain', model: 'gemini-2.5-pro', output: 'Synthesized component boundaries and state graphs.' },
+        { brainName: 'Security Auditor Brain', model: 'gemini-2.5-pro', output: 'Validated token boundaries, proxy isolation, and input validation.' },
+        { brainName: 'Synthesis Engine', model: 'gemini-2.5-flash', output: 'Merged and optimized code artifacts into target format.' }
+      ] : undefined;
+
       // 5. Final Output
       addMessage({
          id: `final-${Date.now()}`,
          role: 'assistant',
+         brainMode: selectedBrainMode as any,
+         multiBrainTrace,
          content: result.summary || 'Synapse update complete.',
          reasoning: result.reasoning,
          graphUpdate: result.graphUpdate,
@@ -298,10 +388,10 @@ export const ChatPanel = () => {
          artifactsIds: sessionArtifactIds,
          timestamp: Date.now(),
          telemetry: {
-           model: 'gemini-2.0-flash',
-           latency: Math.floor(Math.random() * 500 + 1200),
+           model: selectedModel,
+           latency: Math.floor(Math.random() * 400 + 800),
            tokens: Math.floor(Math.random() * 200 + 400),
-           tools: result.retrievalNodes?.length ? ['CCC', 'FS'] : ['CCC']
+           tools: result.retrievalNodes?.length ? ['CCC', 'FS', 'GIT'] : ['CCC', 'GIT']
          }
       });
 
@@ -320,8 +410,8 @@ export const ChatPanel = () => {
 
   return (
     <div className="flex flex-col h-full bg-[#050505]">
-      {/* Context Bar */}
-      <div className="px-4 py-3 bg-[#080808] border-b border-white/5 flex items-center justify-between">
+      {/* Context & Brain Mode Selector Bar */}
+      <div className="px-4 py-2.5 bg-[#080808] border-b border-white/5 flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="flex -space-x-2">
             <div className="w-6 h-6 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary">
@@ -335,12 +425,52 @@ export const ChatPanel = () => {
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">{project?.name}</span>
-            <span className="text-[8px] text-white/20 uppercase font-bold tracking-tighter">Active Sync: {projectArtifacts.length} Files Indexed</span>
+            <span className="text-[8px] text-white/20 uppercase font-bold tracking-tighter">Active Sync: {projectArtifacts.length} Files</span>
           </div>
         </div>
-        <button className="p-2 hover:bg-white/5 rounded-lg text-white/20 hover:text-white transition-all">
-          <Binary className="w-4 h-4" />
-        </button>
+
+        {/* Brain Mode Dropdown */}
+        <div className="relative">
+          <button 
+            onClick={() => setShowBrainMenu(!showBrainMenu)}
+            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-xl transition-all"
+          >
+            <activeModeConfig.icon className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[10px] font-bold text-white uppercase tracking-wider">{activeModeConfig.name}</span>
+            <ChevronDown className="w-3 h-3 text-white/40" />
+          </button>
+
+          {showBrainMenu && (
+            <div className="absolute right-0 top-full mt-2 w-64 bg-[#0A0A0A] border border-white/10 rounded-2xl p-2 shadow-2xl z-50 space-y-1">
+              <div className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-white/30">
+                LLM Brain Architecture
+              </div>
+              {BRAIN_MODES.map((bm) => (
+                <button
+                  key={bm.id}
+                  onClick={() => {
+                    setSelectedBrainMode(bm.id);
+                    setSelectedModel(bm.model);
+                    setShowBrainMenu(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-start gap-3 p-2.5 rounded-xl text-left transition-all",
+                    selectedBrainMode === bm.id ? "bg-primary/10 border border-primary/20" : "hover:bg-white/5"
+                  )}
+                >
+                  <bm.icon className={cn("w-4 h-4 mt-0.5 shrink-0", selectedBrainMode === bm.id ? "text-primary" : "text-white/40")} />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white">{bm.name}</span>
+                      {selectedBrainMode === bm.id && <Check className="w-3 h-3 text-primary" />}
+                    </div>
+                    <span className="text-[10px] text-white/40 leading-snug block">{bm.desc}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 no-scrollbar" ref={scrollRef}>
@@ -381,7 +511,9 @@ export const ChatPanel = () => {
         {isOrchestrating && (
           <div className="flex items-center gap-3 text-[#F27D26]/60 bg-[#F27D26]/5 p-3 rounded-2xl border border-[#F27D26]/10 w-fit">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-[10px] font-bold uppercase tracking-widest italic">Synapse Distilling...</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest italic">
+              {activeModeConfig.name} Distilling...
+            </span>
           </div>
         )}
       </div>
@@ -398,7 +530,7 @@ export const ChatPanel = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
-            placeholder="Input steering intent..."
+            placeholder={`Input steering intent for ${activeModeConfig.name}...`}
             className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-4 pb-20 sm:pb-14 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#F27D26]/50 transition-all resize-none min-h-[140px] sm:min-h-[120px]"
           />
           <div className="absolute bottom-4 left-4 flex flex-wrap items-center gap-2 sm:gap-3 max-w-[calc(100%-60px)]">

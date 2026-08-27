@@ -37,11 +37,19 @@ export interface Message {
   steps?: OrchestrationStep[];
   artifactsIds?: string[];
   timestamp: number;
+  brainMode?: 'flash' | 'deep-reasoning' | 'multi-brain' | 'security-auditor';
   telemetry?: {
     model: string;
     latency: number;
     tokens: number;
     tools: string[];
+    brainMode?: string;
+  };
+  multiBrainTrace?: {
+    plannerModel?: string;
+    verifierModel?: string;
+    consensusStatus?: string;
+    auditedAspects?: string[];
   };
 }
 
@@ -57,13 +65,26 @@ export interface Project {
   gitUrl?: string;
 }
 
+export interface GitCommit {
+  hash: string;
+  shortHash: string;
+  author: string;
+  date: string;
+  message: string;
+}
+
 export interface GitStatus {
+  initialized?: boolean;
   branch: string;
   isDirty: boolean;
   ahead: number;
   behind: number;
   stagedFiles: string[];
   unstagedFiles: string[];
+  untrackedFiles?: string[];
+  isClean?: boolean;
+  remoteUrl?: string;
+  commits?: GitCommit[];
 }
 
 export interface Skill {

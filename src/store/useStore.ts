@@ -43,6 +43,11 @@ interface AppActions {
   commitChanges: (projectId: string, message: string) => void;
   pushChanges: (projectId: string) => void;
   fetchChanges: (projectId: string) => void;
+  syncGitStatus: (projectId: string) => Promise<void>;
+  createBranch: (projectId: string, name: string) => Promise<void>;
+  switchBranch: (projectId: string, name: string) => Promise<void>;
+  exportWorkspaceSnapshot: () => string;
+  importWorkspaceSnapshot: (jsonString: string) => boolean;
   setPCards: (projectId: string, cards: PCard[]) => void;
   loadPersistedState: () => Promise<void>;
   saveAsTemplate: (projectId: string, name: string, description: string) => void;
@@ -910,38 +915,98 @@ export const useStore = create<AppState & AppActions>((set) => ({
       ...state.recentActivity
     ]
   })),
-  stageFile: (projectId, file) => set((state) => ({
-    projects: state.projects.map(p => {
-      if (p.id !== projectId || !p.gitStatus) return p;
-      const git = p.gitStatus;
-      return {
-        ...p,
-        gitStatus: {
-          ...git,
-          isDirty: true,
-          stagedFiles: [...git.stagedFiles, file],
-          unstagedFiles: git.unstagedFiles.filter(f => f !== file)
-        }
-      };
-    })
-  })),
-  unstageFile: (projectId, file) => set((state) => ({
-    projects: state.projects.map(p => {
-      if (p.id !== projectId || !p.gitStatus) return p;
-      const git = p.gitStatus;
-      return {
-        ...p,
-        gitStatus: {
-          ...git,
-          stagedFiles: git.stagedFiles.filter(f => f !== file),
-          unstagedFiles: [...git.unstagedFiles, file]
-        }
-      };
-    })
-  })),
-  commitChanges: (projectId, message) => set((state) => {
-    const proj = state.projects.find(p => p.id === projectId);
-    if (!proj || !proj.gitStatus) return state;
+  syncGitStatus: async (projectId) => {
+    try {
+      const res = await fetch('/api/git/status');
+      if (res.ok) {
+        const status = await res.json();
+        const logRes = await fetch('/api/git/log');
+        const logData = logRes.ok ? await logRes.json() : { commits: [] };
+
+        set((state) => ({
+          projects: state.projects.map(p => 
+            p.id === projectId 
+              ? {
+                  ...p,
+                  gitStatus: {
+                    branch: status.branch || 'main',
+                    isDirty: status.isDirty || false,
+                    ahead: status.ahead || 0,
+                    behind: status.behind || 0,
+                    stagedFiles: status.stagedFiles || [],
+                    unstagedFiles: status.unstagedFiles || [],
+                    untrackedFiles: status.untrackedFiles || [],
+                    isClean: status.isClean !== undefined ? status.isClean : true,
+                    remoteUrl: status.remoteUrl || '',
+                    commits: logData.commits || []
+                  }
+                }
+              : p
+          )
+        }));
+      }
+    } catch (err) {
+      console.warn('Git server status sync unavailable:', err);
+    }
+  },
+  stageFile: async (projectId, file) => {
+    // Optimistic update
+    set((state) => ({
+      projects: state.projects.map(p => {
+        if (p.id !== projectId || !p.gitStatus) return p;
+        const git = p.gitStatus;
+        return {
+          ...p,
+          gitStatus: {
+            ...git,
+            isDirty: true,
+            stagedFiles: [...git.stagedFiles.filter(f => f !== file), file],
+            unstagedFiles: git.unstagedFiles.filter(f => f !== file)
+          }
+        };
+      })
+    }));
+
+    try {
+      await fetch('/api/git/stage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: [file] })
+      });
+    } catch (e) {
+      // offline fallback
+    }
+  },
+  unstageFile: async (projectId, file) => {
+    // Optimistic update
+    set((state) => ({
+      projects: state.projects.map(p => {
+        if (p.id !== projectId || !p.gitStatus) return p;
+        const git = p.gitStatus;
+        return {
+          ...p,
+          gitStatus: {
+            ...git,
+            stagedFiles: git.stagedFiles.filter(f => f !== file),
+            unstagedFiles: [...git.unstagedFiles.filter(f => f !== file), file]
+          }
+        };
+      })
+    }));
+
+    try {
+      await fetch('/api/git/unstage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: [file] })
+      });
+    } catch (e) {
+      // offline fallback
+    }
+  },
+  commitChanges: async (projectId, message) => {
+    const proj = useStore.getState().projects.find(p => p.id === projectId);
+    if (!proj || !proj.gitStatus) return;
     const git = proj.gitStatus;
     
     const newActivity = {
@@ -952,27 +1017,36 @@ export const useStore = create<AppState & AppActions>((set) => ({
       type: 'git' as const
     };
 
-    const updatedProjects = state.projects.map(p => {
-      if (p.id !== projectId || !p.gitStatus) return p;
-      return {
-        ...p,
-        gitStatus: {
-          ...p.gitStatus,
-          isDirty: false,
-          ahead: p.gitStatus.ahead + 1,
-          stagedFiles: []
-        }
-      };
-    });
-
-    return {
-      projects: updatedProjects,
+    set((state) => ({
+      projects: state.projects.map(p => {
+        if (p.id !== projectId || !p.gitStatus) return p;
+        return {
+          ...p,
+          gitStatus: {
+            ...p.gitStatus,
+            isDirty: false,
+            ahead: p.gitStatus.ahead + 1,
+            stagedFiles: []
+          }
+        };
+      }),
       recentActivity: [newActivity, ...state.recentActivity]
-    };
-  }),
-  pushChanges: (projectId) => set((state) => {
-    const proj = state.projects.find(p => p.id === projectId);
-    if (!proj || !proj.gitStatus) return state;
+    }));
+
+    try {
+      await fetch('/api/git/commit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      useStore.getState().syncGitStatus(projectId);
+    } catch (e) {
+      // offline fallback
+    }
+  },
+  pushChanges: async (projectId) => {
+    const proj = useStore.getState().projects.find(p => p.id === projectId);
+    if (!proj || !proj.gitStatus) return;
     const git = proj.gitStatus;
 
     const newActivity = {
@@ -983,41 +1057,123 @@ export const useStore = create<AppState & AppActions>((set) => ({
       type: 'git' as const
     };
 
-    const updatedProjects = state.projects.map(p => {
-      if (p.id !== projectId || !p.gitStatus) return p;
-      return {
-        ...p,
-        gitStatus: {
-          ...p.gitStatus,
-          ahead: 0
-        }
-      };
-    });
-
-    return {
-      projects: updatedProjects,
+    set((state) => ({
+      projects: state.projects.map(p => {
+        if (p.id !== projectId || !p.gitStatus) return p;
+        return {
+          ...p,
+          gitStatus: {
+            ...p.gitStatus,
+            ahead: 0
+          }
+        };
+      }),
       recentActivity: [newActivity, ...state.recentActivity]
-    };
-  }),
-  fetchChanges: (projectId) => set((state) => {
-    const proj = state.projects.find(p => p.id === projectId);
-    if (!proj || !proj.gitStatus) return state;
-    
-    const updatedProjects = state.projects.map(p => {
-      if (p.id !== projectId || !p.gitStatus) return p;
-      return {
-        ...p,
-        gitStatus: {
-          ...p.gitStatus,
-          behind: Math.random() > 0.5 ? 1 : 0
-        }
-      };
-    });
+    }));
 
-    return {
-      projects: updatedProjects
+    try {
+      await fetch('/api/git/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'push' })
+      });
+    } catch (e) {
+      // offline fallback
+    }
+  },
+  fetchChanges: async (projectId) => {
+    try {
+      await fetch('/api/git/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'fetch' })
+      });
+      useStore.getState().syncGitStatus(projectId);
+    } catch (e) {
+      set((state) => ({
+        projects: state.projects.map(p => {
+          if (p.id !== projectId || !p.gitStatus) return p;
+          return {
+            ...p,
+            gitStatus: {
+              ...p.gitStatus,
+              behind: Math.random() > 0.5 ? 1 : 0
+            }
+          };
+        })
+      }));
+    }
+  },
+  createBranch: async (projectId, name) => {
+    try {
+      await fetch('/api/git/branch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, create: true })
+      });
+      useStore.getState().syncGitStatus(projectId);
+    } catch (e) {
+      set((state) => ({
+        projects: state.projects.map(p => 
+          p.id === projectId && p.gitStatus ? { ...p, gitStatus: { ...p.gitStatus, branch: name } } : p
+        )
+      }));
+    }
+  },
+  switchBranch: async (projectId, name) => {
+    try {
+      await fetch('/api/git/branch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, checkout: true })
+      });
+      useStore.getState().syncGitStatus(projectId);
+    } catch (e) {
+      set((state) => ({
+        projects: state.projects.map(p => 
+          p.id === projectId && p.gitStatus ? { ...p, gitStatus: { ...p.gitStatus, branch: name } } : p
+        )
+      }));
+    }
+  },
+  exportWorkspaceSnapshot: () => {
+    const state = useStore.getState();
+    const snapshot = {
+      version: '2.5.0',
+      timestamp: Date.now(),
+      projects: state.projects,
+      currentProjectId: state.currentProjectId,
+      artifacts: state.artifacts,
+      skills: state.skills,
+      templates: state.templates,
+      cccIR: state.cccIR,
+      pCards: state.pCards,
+      messages: state.messages
     };
-  }),
+    return JSON.stringify(snapshot, null, 2);
+  },
+  importWorkspaceSnapshot: (jsonString: string) => {
+    try {
+      const data = JSON.parse(jsonString);
+      if (!data.projects || !Array.isArray(data.projects)) {
+        return false;
+      }
+      set({
+        projects: data.projects,
+        currentProjectId: data.currentProjectId || (data.projects[0] ? data.projects[0].id : null),
+        artifacts: data.artifacts || [],
+        skills: data.skills || [],
+        templates: data.templates || [],
+        cccIR: data.cccIR || {},
+        pCards: data.pCards || {},
+        messages: data.messages || []
+      });
+      return true;
+    } catch (e) {
+      console.error('Failed to parse workspace snapshot JSON:', e);
+      return false;
+    }
+  },
   loadPersistedState: async () => {
     const activeView = await getItem<ViewType | null>('nexus_activeView', null);
     const currentProjectId = await getItem<string | null>('nexus_currentProjectId', null);
