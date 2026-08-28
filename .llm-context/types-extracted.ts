@@ -1,3 +1,54 @@
+// Auto-extracted TypeScript type definitions
+// Generated: 2026-08-28 03:34 UTC
+// Types annotated with 'used in:' show cross-file import relationships.
+
+
+// -- src/lib/cccQueryEngine.ts --
+export type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'contains' | 'startsWith' | 'endsWith' | 'in' | 'matches';
+// used in: src/components/CCCInspector.tsx
+
+export interface QueryCondition {
+  field: string;
+  operator: Operator;
+  value: any;
+}
+// used in: src/components/CCCInspector.tsx
+
+export interface ConditionGroup {
+  logicalOp: 'AND' | 'OR';
+  conditions: (QueryCondition | ConditionGroup)[];
+}
+// used in: src/components/CCCInspector.tsx
+
+export interface CCCAggregateResult {
+  totalNodes: number;
+  byType: Record<string, number>;
+  avgConnections: number;
+  maxConnections: { id: string; name: string; count: number } | null;
+  criticalHubsCount: number;
+  orphanNodesCount: number;
+  totalLinesOfCode: number;
+  dependencyDensityRatio: number;
+}
+
+export interface CCCPresetQuery {
+  id: string;
+  name: string;
+  description: string;
+  dsl: string;
+  conditionGroup: ConditionGroup;
+}
+
+
+// -- src/lib/gemini.ts --
+export interface OrchestrationOptions {
+  brainMode?: 'flash' | 'deep-reasoning' | 'multi-brain' | 'security-auditor';
+  model?: string;
+  context?: any;
+}
+
+
+// -- src/types.ts --
 export enum ArtifactType {
   CODE = 'code',
   DIFF = 'diff',
@@ -7,6 +58,7 @@ export enum ArtifactType {
   MEDIA = 'media',
   CCC = 'ccc'
 }
+// used in: src/components/CCCGraphEditor.tsx, src/components/workspace/ArtifactPanel.tsx, src/components/workspace/ChatPanel.tsx, src/store/useStore.ts
 
 export interface Artifact {
   id: string;
@@ -18,6 +70,7 @@ export interface Artifact {
   createdAt: number;
   verificationState?: 'SUCCESS' | 'FAILURE' | 'PENDING';
 }
+// used in: src/store/useStore.ts
 
 export interface OrchestrationStep {
   id: string;
@@ -26,6 +79,7 @@ export interface OrchestrationStep {
   details?: string;
   timestamp: number;
 }
+// used in: src/store/useStore.ts
 
 export interface Message {
   id: string;
@@ -52,6 +106,7 @@ export interface Message {
     auditedAspects?: string[];
   };
 }
+// used in: src/components/workspace/ChatPanel.tsx, src/store/useStore.ts
 
 export interface Project {
   id: string;
@@ -64,6 +119,7 @@ export interface Project {
   status: 'active' | 'archived';
   gitUrl?: string;
 }
+// used in: src/store/useStore.ts
 
 export interface GitCommit {
   hash: string;
@@ -72,6 +128,7 @@ export interface GitCommit {
   date: string;
   message: string;
 }
+// used in: src/components/GitPanel.tsx
 
 export interface GitStatus {
   initialized?: boolean;
@@ -114,6 +171,7 @@ export interface Skill {
   telemetry_mapping?: Record<string, string>;
   insight_triggers?: string[];
 }
+// used in: src/components/SkillsView.tsx, src/store/useStore.ts
 
 export interface TemplateFile {
   path: string;
@@ -143,6 +201,7 @@ export interface CCCObject {
   connections: string[]; // List of other symbol IDs
   graphType?: CCCGraphType;
 }
+// used in: src/components/CCCInspector.tsx, src/lib/ccc.ts, src/lib/cccQueryEngine.ts
 
 export interface CCCQueryRequest {
   query: string;
@@ -150,6 +209,7 @@ export interface CCCQueryRequest {
   depth?: number;
   include?: Array<'symbols' | 'routes' | 'dependencies' | 'schemas' | 'services'>;
 }
+// used in: src/store/useStore.ts
 
 export interface CCCQueryResponse {
   symbols: Array<{ id: string; name: string; type: string; file?: string; signature?: string }>;
@@ -157,13 +217,14 @@ export interface CCCQueryResponse {
   related_files: Array<{ path: string; relevance: number }>;
   confidence: number;
 }
+// used in: src/store/useStore.ts
 
 export interface CCCIR {
   nodes: CCCObject[];
   lastUpdated: number;
 }
+// used in: src/components/CCCInspector.tsx, src/lib/ccc.ts, src/lib/cccQueryEngine.ts, src/store/useStore.ts
 
-// Orchestration Event Protocol (OPEN_SPECS.md §6)
 export type OrchestrationEventType =
   | 'USER_MESSAGE_RECEIVED'
   | 'CCC_CONTEXT_BUILT'
@@ -183,8 +244,8 @@ export interface OrchestrationEvent {
   project_id?: string;
   payload: Record<string, any>;
 }
+// used in: src/store/useStore.ts
 
-// Model Provider Interface (OPEN_SPECS.md §10)
 export interface ModelInfo {
   id: string;
   name: string;
@@ -206,8 +267,8 @@ export interface ModelProvider {
   status: 'connected' | 'unreachable' | 'configured';
   authType: 'api-key' | 'bearer' | 'local';
 }
+// used in: src/store/useStore.ts
 
-// Tool Runtime Specification (OPEN_SPECS.md §8)
 export interface ToolDefinition {
   id: string;
   name: string;
@@ -219,8 +280,8 @@ export interface ToolDefinition {
   execution_mode: 'sync' | 'async' | 'streaming' | 'background';
   builtin?: boolean;
 }
+// used in: src/store/useStore.ts
 
-// Cognitive Memory System (OPEN_SPECS.md §9)
 export interface CognitiveMemory {
   memory_id: string;
   memory_type: 'Session' | 'Project' | 'User' | 'Intent' | 'Skill';
@@ -229,6 +290,7 @@ export interface CognitiveMemory {
   content: Record<string, any>;
   confidence?: number;
 }
+// used in: src/store/useStore.ts
 
 export interface PCard {
   pcard_id: string;
@@ -261,8 +323,10 @@ export interface PCard {
   proposed_architecture?: string[];
   quick_actions?: string[];
 }
+// used in: src/components/CardDeck.tsx, src/store/useStore.ts
 
 export type ViewType = 'workspace' | 'artifacts' | 'skills' | 'models' | 'settings' | 'ccc' | 'deck' | 'git' | 'marketplace' | 'info' | 'dashboard';
+// used in: src/store/useStore.ts
 
 export interface TelemetryStream {
   cpu: number;
@@ -308,3 +372,4 @@ export interface AppState {
   tools: ToolDefinition[];
   cognitiveMemories: CognitiveMemory[];
 }
+// used in: src/store/useStore.ts

@@ -27,6 +27,20 @@ async function runGit(args: string[], cwd = process.cwd()): Promise<{ success: b
   }
 }
 
+// Helper for executing native CCC Context Compiler commands safely
+async function runCCC(args: string[], cwd = process.cwd()): Promise<{ success: boolean; stdout: string; stderr: string }> {
+  try {
+    const { stdout, stderr } = await execFileAsync('ccc', args, { cwd, maxBuffer: 10 * 1024 * 1024 });
+    return { success: true, stdout: (stdout || '').trim(), stderr: (stderr || '').trim() };
+  } catch (error: any) {
+    return { 
+      success: false, 
+      stdout: (error.stdout || '').trim(), 
+      stderr: (error.stderr || error.message || '').trim() 
+    };
+  }
+}
+
 const app = express();
 const PORT = 3000;
 
@@ -258,6 +272,295 @@ app.post('/api/ccc/index', apiLimiter, (req, res) => {
   }
 });
 
+// Real CCC Query Endpoint per OPEN_SPECS.md §4
+app.post('/api/ccc/query', apiLimiter, async (req, res) => {
+  try {
+    const { query = '', scope = 'project', depth = 3, include = ['symbols', 'routes', 'dependencies', 'schemas', 'services'] } = req.body || {};
+    const qLower = String(query).toLowerCase();
+    const baseDir = process.cwd();
+
+    // 1. Gather dependencies from package.json
+    let dependencies: Array<{ name: string; version: string }> = [];
+    const packageJsonPath = path.join(baseDir, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+        if (pkg.dependencies) {
+          Object.entries(pkg.dependencies).forEach(([name, version]: [string, any]) => {
+            if (!qLower || name.toLowerCase().includes(qLower) || qLower.includes(name.toLowerCase())) {
+              dependencies.push({ name, version: String(version) });
+            }
+          });
+          if (dependencies.length === 0) {
+            dependencies = Object.entries(pkg.dependencies).slice(0, 8).map(([name, version]) => ({ name, version: String(version) }));
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Try native CCC CLI first if query is provided
+    if (query && String(query).trim()) {
+      const sanitizedTerm = String(query).trim().replace(/["'\\]/g, '');
+      const cccRes = await runCCC(['query', '--format', 'json', sanitizedTerm]);
+      if (cccRes.success && cccRes.stdout) {
+        try {
+          const cccData = JSON.parse(cccRes.stdout);
+          if (cccData && (cccData.symbols?.length || cccData.schemas?.length || cccData.routes?.length)) {
+            const nativeSymbols = (cccData.symbols || []).map((s: any, idx: number) => ({
+              id: `native-sym-${idx}`,
+              name: s.name,
+              type: s.kind || 'symbol',
+              file: s.file,
+              signature: `line ${s.line} (${s.kind || 'symbol'})`
+            }));
+
+            return res.json({
+              symbols: nativeSymbols.slice(0, 25),
+              schemas: cccData.schemas || [],
+              routes: cccData.routes || [],
+              dependencies: dependencies.slice(0, 10),
+              related_files: (cccData.symbols || []).map((s: any) => ({ path: s.file, relevance: 0.95 })),
+              confidence: 0.98,
+              source: 'native-ccc'
+            });
+          }
+        } catch (pe) {}
+      }
+    }
+
+    // 2. Fallback to in-memory workspace scanner
+    const relativeFiles = scanDir(baseDir, baseDir);
+    const symbols: Array<{ id: string; name: string; type: string; file: string; signature: string }> = [];
+    const related_files: Array<{ path: string; relevance: number }> = [];
+
+    relativeFiles.forEach(relPath => {
+      const fullPath = path.join(baseDir, relPath);
+      try {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        let matchCount = 0;
+        if (qLower) {
+          const words = qLower.split(/\s+/).filter(Boolean);
+          words.forEach(w => {
+            if (content.toLowerCase().includes(w)) matchCount++;
+          });
+        }
+
+        if (matchCount > 0 || !qLower) {
+          const relevance = Math.min(0.99, Math.round((0.5 + (matchCount * 0.15)) * 100) / 100);
+          related_files.push({ path: relPath, relevance });
+        }
+
+        // Symbol matching regex: classes, functions, interfaces, types, routes
+        const lines = content.split('\n');
+        lines.forEach((line, idx) => {
+          const trimmed = line.trim();
+          const funcMatch = trimmed.match(/^export\s+(async\s+)?function\s+([A-Za-z0-9_]+)/);
+          const classMatch = trimmed.match(/^export\s+class\s+([A-Za-z0-9_]+)/);
+          const typeMatch = trimmed.match(/^export\s+type\s+([A-Za-z0-9_]+)/);
+          const interfaceMatch = trimmed.match(/^export\s+interface\s+([A-Za-z0-9_]+)/);
+          const constMatch = trimmed.match(/^export\s+const\s+([A-Za-z0-9_]+)/);
+          const routeMatch = trimmed.match(/app\.(get|post|put|delete|patch)\(\s*['"]([^'"]+)['"]/);
+
+          if (funcMatch) {
+            symbols.push({
+              id: `sym-${relPath}-${idx}`,
+              name: funcMatch[2],
+              type: 'function',
+              file: relPath,
+              signature: trimmed.substring(0, 60)
+            });
+          } else if (classMatch) {
+            symbols.push({
+              id: `sym-${relPath}-${idx}`,
+              name: classMatch[1],
+              type: 'class',
+              file: relPath,
+              signature: trimmed.substring(0, 60)
+            });
+          } else if (interfaceMatch) {
+            symbols.push({
+              id: `sym-${relPath}-${idx}`,
+              name: interfaceMatch[1],
+              type: 'interface',
+              file: relPath,
+              signature: trimmed.substring(0, 60)
+            });
+          } else if (typeMatch) {
+            symbols.push({
+              id: `sym-${relPath}-${idx}`,
+              name: typeMatch[1],
+              type: 'type',
+              file: relPath,
+              signature: trimmed.substring(0, 60)
+            });
+          } else if (routeMatch) {
+            symbols.push({
+              id: `route-${relPath}-${idx}`,
+              name: `${routeMatch[1].toUpperCase()} ${routeMatch[2]}`,
+              type: 'route',
+              file: relPath,
+              signature: trimmed.substring(0, 60)
+            });
+          }
+        });
+      } catch (e) {}
+    });
+
+    let filteredSymbols = symbols;
+    if (qLower) {
+      filteredSymbols = symbols.filter(s => 
+        s.name.toLowerCase().includes(qLower) || 
+        s.file.toLowerCase().includes(qLower) ||
+        qLower.includes(s.name.toLowerCase())
+      );
+      if (filteredSymbols.length === 0) {
+        filteredSymbols = symbols.slice(0, 10);
+      }
+    } else {
+      filteredSymbols = symbols.slice(0, 15);
+    }
+
+    related_files.sort((a, b) => b.relevance - a.relevance);
+    const confidence = filteredSymbols.length > 0 ? 0.94 : 0.72;
+
+    res.json({
+      symbols: filteredSymbols.slice(0, 20),
+      dependencies: dependencies.slice(0, 10),
+      related_files: related_files.slice(0, 10),
+      confidence,
+      source: 'memory-ast'
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'CCC Query failed', details: err.message });
+  }
+});
+
+// Compile Context with native CCC CLI
+app.post('/api/ccc/compile', apiLimiter, async (req, res) => {
+  try {
+    const { quick = true } = req.body || {};
+    const args = quick ? ['-q'] : [];
+    const cccRes = await runCCC(args);
+    
+    if (cccRes.success) {
+      recordOrchestrationEvent('CCC_CONTEXT_BUILT', {
+        message: 'CCC context compilation completed successfully via ccc-contextcompiler.',
+        summary: cccRes.stdout.substring(0, 300)
+      });
+      return res.json({ success: true, output: cccRes.stdout });
+    } else {
+      return res.status(500).json({ error: 'CCC compilation failed', details: cccRes.stderr || cccRes.stdout });
+    }
+  } catch (err: any) {
+    res.status(500).json({ error: 'CCC compilation error', details: err.message });
+  }
+});
+
+// Run CCC Doctor diagnostic endpoint
+app.get('/api/ccc/doctor', apiLimiter, async (req, res) => {
+  try {
+    const cccRes = await runCCC(['--doctor']);
+    res.json({
+      success: cccRes.success,
+      output: cccRes.stdout,
+      error: cccRes.stderr
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'CCC doctor failed', details: err.message });
+  }
+});
+
+// Retrieve compiled CCC artifacts metadata from .llm-context
+app.get('/api/ccc/artifacts', apiLimiter, (req, res) => {
+  try {
+    const manifestPath = path.join(process.cwd(), '.llm-context', 'context-manifest.json');
+    if (fs.existsSync(manifestPath)) {
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      return res.json(manifest);
+    }
+    res.json({ artifacts: [], message: 'No .llm-context/ artifacts found. Run ccc compile first.' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to read CCC artifacts', details: err.message });
+  }
+});
+
+// Event bus tracking per OPEN_SPECS.md §6
+const orchestrationEventsHistory: any[] = [
+  {
+    event_id: 'evt-init',
+    type: 'CCC_CONTEXT_BUILT',
+    timestamp: Date.now() - 30000,
+    project_id: 'nexus-core',
+    payload: { message: 'Semantic index loaded into muscle memory.' }
+  }
+];
+
+function recordOrchestrationEvent(type: string, payload: any, projectId = 'nexus-core') {
+  const event = {
+    event_id: `evt-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    type,
+    timestamp: Date.now(),
+    project_id: projectId,
+    payload
+  };
+  orchestrationEventsHistory.unshift(event);
+  if (orchestrationEventsHistory.length > 100) orchestrationEventsHistory.pop();
+
+  if (activeWss) {
+    activeWss.clients.forEach((client: any) => {
+      if (client.readyState === 1 /* OPEN */) {
+        client.send(JSON.stringify({
+          type: 'ORCHESTRATION_EVENT',
+          payload: event
+        }));
+      }
+    });
+  }
+  return event;
+}
+
+app.get('/api/orchestration/events', apiLimiter, (req, res) => {
+  res.json({ events: orchestrationEventsHistory });
+});
+
+app.post('/api/nsp/dispatch', apiLimiter, (req, res) => {
+  const { command, targetCardId, parameters } = req.body || {};
+  const evt = recordOrchestrationEvent('TASK_APPROVED', { command, targetCardId, parameters });
+  res.json({ success: true, event: evt });
+});
+
+app.get('/api/models/providers', apiLimiter, (req, res) => {
+  res.json([
+    {
+      id: 'gemini',
+      name: 'Google Gemini (Native)',
+      endpoint: '/api/orchestrate',
+      active: true,
+      authType: 'api-key',
+      status: 'connected',
+      latencyMs: 120,
+      capabilities: ['chat', 'reasoning', 'multimodal', 'embeddings', 'speech', 'image'],
+      models: [
+        { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', contextWindow: '1M tokens', reasoning: true, description: 'Default ultra-fast reasoning model' },
+        { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', contextWindow: '2M tokens', reasoning: true, description: 'Deep multi-brain architectural analysis' }
+      ]
+    },
+    {
+      id: 'local',
+      name: 'Local Models (Ollama / vLLM)',
+      endpoint: 'http://localhost:11434',
+      active: false,
+      authType: 'local',
+      status: 'configured',
+      latencyMs: 45,
+      capabilities: ['chat', 'embeddings'],
+      models: [
+        { id: 'qwen-2.5-coder:32b', name: 'Qwen 2.5 Coder (32B)', contextWindow: '32k tokens', reasoning: true, description: 'Local high-performance code generation' }
+      ]
+    }
+  ]);
+});
+
 // Server-side database of skills for real marketplace sync
 const SKILLS_FILE_PATH = path.join(process.cwd(), 'skills.json');
 
@@ -278,7 +581,11 @@ let serverSkills = [
     retrievalRules: ['.github/**/*', '.git/**/*'],
     workflows: ['clone_repository', 'push_code_changes'],
     validations: ['GitAuth', 'BranchSync'],
-    prompts: ['System: Orchestrate clean commit history. Ensure credentials are secure.']
+    prompts: ['System: Orchestrate clean commit history. Ensure credentials are secure.'],
+    permissions: ['git:read', 'git:write'],
+    visual_priority: 'high',
+    telemetry_mapping: { latency_key: 'git_latency', error_key: 'git_errors' },
+    insight_triggers: ['Uncommitted changes detected', 'Branch divergence']
   },
   {
     id: 'tailwind-wizard',
@@ -296,7 +603,11 @@ let serverSkills = [
     retrievalRules: ['**/*.css', 'tailwind.config.ts'],
     workflows: ['apply_style'],
     validations: ['CSSLint'],
-    prompts: ['System: Design with intent.']
+    prompts: ['System: Design with intent.'],
+    permissions: ['fs:write'],
+    visual_priority: 'normal',
+    telemetry_mapping: { latency_key: 'css_compile_latency', error_key: 'css_lint_errors' },
+    insight_triggers: ['Duplicate Tailwind class detected', 'Arbitrary value overload']
   },
   {
     id: 'advanced-git',
@@ -314,7 +625,11 @@ let serverSkills = [
     retrievalRules: ['.git/**/*'],
     workflows: ['resolve_conflicts'],
     validations: ['GitStatus'],
-    prompts: ['System: Handle history with care.']
+    prompts: ['System: Handle history with care.'],
+    permissions: ['git:read', 'git:write'],
+    visual_priority: 'high',
+    telemetry_mapping: { latency_key: 'rebase_latency', error_key: 'conflict_count' },
+    insight_triggers: ['Merge conflicts present in working directory']
   },
   {
     id: 'dockerize',
@@ -332,7 +647,11 @@ let serverSkills = [
     retrievalRules: ['Dockerfile', 'docker-compose.yml'],
     workflows: ['generate_dockerfile'],
     validations: ['DockerLinter'],
-    prompts: ['System: Minimize image size.']
+    prompts: ['System: Minimize image size.'],
+    permissions: ['container:build', 'fs:write'],
+    visual_priority: 'normal',
+    telemetry_mapping: { latency_key: 'build_duration', error_key: 'container_crashes' },
+    insight_triggers: ['Unoptimized large container layers found']
   },
   {
     id: 'db-gen',
@@ -350,7 +669,11 @@ let serverSkills = [
     retrievalRules: ['prisma/schema.prisma', 'src/db/**/*'],
     workflows: ['generate_schema'],
     validations: ['PrismaValidate'],
-    prompts: ['System: Normalize data structures. Avoid redundant indices.']
+    prompts: ['System: Normalize data structures. Avoid redundant indices.'],
+    permissions: ['db:read', 'db:write', 'fs:write'],
+    visual_priority: 'critical',
+    telemetry_mapping: { latency_key: 'query_latency', error_key: 'migration_errors' },
+    insight_triggers: ['Missing table foreign key relationship index']
   }
 ];
 
@@ -400,7 +723,11 @@ app.post('/api/skills/registry', apiLimiter, (req, res) => {
       retrievalRules: [],
       workflows: [],
       validations: [],
-      prompts: []
+      prompts: [],
+      permissions: Array.isArray(req.body.permissions) ? req.body.permissions : ['fs:read'],
+      visual_priority: req.body.visual_priority || 'normal',
+      telemetry_mapping: req.body.telemetry_mapping || { latency_key: 'system.latency', error_key: 'system.errors' },
+      insight_triggers: Array.isArray(req.body.insight_triggers) ? req.body.insight_triggers : []
     };
     serverSkills.unshift(newSkill);
     
@@ -1082,9 +1409,13 @@ async function startServer() {
         const data = JSON.parse(message.toString());
         if (data.type === 'PING') {
           ws.send(JSON.stringify({ type: 'PONG', timestamp: Date.now() }));
+        } else if (data.type === 'INTENT_DISPATCH') {
+          const evt = recordOrchestrationEvent('TASK_APPROVED', data.payload || {});
+          ws.send(JSON.stringify({ type: 'INTENT_DISPATCH_ACK', payload: evt }));
         } else if (data.type === 'VOICE_COMMAND') {
           // Process Voice Commands or trigger special AI response
           console.log('Received real voice command steering payload:', data.text);
+          recordOrchestrationEvent('USER_MESSAGE_RECEIVED', { voiceText: data.text });
         }
       } catch (err) {
         console.error('Error in WS message:', err);

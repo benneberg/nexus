@@ -1,6 +1,6 @@
 {
   "name": "Nexus",
   "description": "The Semantic Operating System for Autonomous Engineering. A mobile-first workspace for intent-driven development with structured semantic context.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["AI-native engineering", "Semantic orchestration", "CCC Integration", "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

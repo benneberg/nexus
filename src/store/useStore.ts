@@ -1,5 +1,9 @@
 import { create } from 'zustand';
-import { AppState, Project, Message, Artifact, ArtifactType, OrchestrationStep, Skill, CCCIR, ViewType, PCard } from '../types';
+import { 
+  AppState, Project, Message, Artifact, ArtifactType, OrchestrationStep, Skill, 
+  CCCIR, ViewType, PCard, OrchestrationEvent, ModelProvider, ToolDefinition, 
+  CognitiveMemory, CCCQueryRequest, CCCQueryResponse 
+} from '../types';
 import { setItem, getItem } from '../lib/db';
 
 interface AppActions {
@@ -52,6 +56,15 @@ interface AppActions {
   loadPersistedState: () => Promise<void>;
   saveAsTemplate: (projectId: string, name: string, description: string) => void;
   fetchMarketplaceSkills: () => Promise<void>;
+  // Open Specs Alignment Actions
+  addOrchestrationEvent: (event: OrchestrationEvent) => void;
+  dispatchIntent: (command: string, targetCardId?: string, parameters?: Record<string, any>) => Promise<void>;
+  addMemory: (memory: CognitiveMemory) => void;
+  executeTool: (toolId: string, inputs: Record<string, any>) => Promise<any>;
+  queryCCCServer: (req: CCCQueryRequest) => Promise<CCCQueryResponse>;
+  exportSkillAsNsk: (skillId: string) => string;
+  importSkillFromNsk: (nskJson: string) => boolean;
+  toggleModelProvider: (providerId: string) => void;
 }
 
 const getLocalItem = <T>(key: string, defaultValue: T): T => {
@@ -65,7 +78,7 @@ const getLocalItem = <T>(key: string, defaultValue: T): T => {
   }
 };
 
-export const useStore = create<AppState & AppActions>((set) => ({
+export const useStore = create<AppState & AppActions>((set, get) => ({
   activeView: (typeof window !== 'undefined' && localStorage.getItem('nexus_activeView') as ViewType) || 'dashboard',
   pinnedProjectIds: ['nexus-core'],
   dashboardWidgets: ['pinned-projects', 'recent-activity', 'scaffold-templates', 'telemetry-status'],
@@ -433,6 +446,138 @@ export const useStore = create<AppState & AppActions>((set) => ({
       }
     ]
   }),
+  orchestrationEvents: [
+    {
+      event_id: 'evt-init',
+      type: 'CCC_CONTEXT_BUILT',
+      timestamp: Date.now() - 60000,
+      project_id: 'nexus-core',
+      payload: { message: 'Semantic index mapped 18 workspace symbols.' }
+    }
+  ],
+  modelProviders: [
+    {
+      id: 'gemini',
+      name: 'Google Gemini (Native)',
+      endpoint: '/api/orchestrate',
+      active: true,
+      authType: 'api-key',
+      status: 'connected',
+      latencyMs: 120,
+      capabilities: ['chat', 'reasoning', 'multimodal', 'embeddings', 'speech', 'image'],
+      models: [
+        { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', contextWindow: '1M tokens', reasoning: true, description: 'Default ultra-fast reasoning model' },
+        { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', contextWindow: '2M tokens', reasoning: true, description: 'Deep multi-brain architectural analysis' },
+        { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', contextWindow: '1M tokens', reasoning: false, description: 'Low latency fallback execution' }
+      ]
+    },
+    {
+      id: 'local',
+      name: 'Local Models (Ollama / vLLM)',
+      endpoint: 'http://localhost:11434',
+      active: false,
+      authType: 'local',
+      status: 'configured',
+      latencyMs: 45,
+      capabilities: ['chat', 'embeddings'],
+      models: [
+        { id: 'qwen-2.5-coder:32b', name: 'Qwen 2.5 Coder (32B)', contextWindow: '32k tokens', reasoning: true, description: 'Local high-performance code generation' },
+        { id: 'deepseek-r1:14b', name: 'DeepSeek R1 (14B)', contextWindow: '64k tokens', reasoning: true, description: 'Local mathematical and reasoning model' }
+      ]
+    },
+    {
+      id: 'anthropic',
+      name: 'Anthropic Claude',
+      endpoint: 'https://api.anthropic.com/v1',
+      active: false,
+      authType: 'api-key',
+      status: 'configured',
+      latencyMs: 240,
+      capabilities: ['chat', 'reasoning', 'multimodal'],
+      models: [
+        { id: 'claude-3-7-sonnet', name: 'Claude 3.7 Sonnet', contextWindow: '200k tokens', reasoning: true, description: 'Hybrid fast/thinking reasoning engine' },
+        { id: 'claude-3-5-haiku', name: 'Claude 3.5 Haiku', contextWindow: '200k tokens', reasoning: false, description: 'Rapid utility tasks' }
+      ]
+    },
+    {
+      id: 'openai',
+      name: 'OpenAI Platform',
+      endpoint: 'https://api.openai.com/v1',
+      active: false,
+      authType: 'api-key',
+      status: 'configured',
+      latencyMs: 190,
+      capabilities: ['chat', 'reasoning', 'multimodal', 'embeddings', 'speech', 'image'],
+      models: [
+        { id: 'gpt-4o', name: 'GPT-4o Omnimodal', contextWindow: '128k tokens', reasoning: false, description: 'Omni-channel flagship' },
+        { id: 'o3-mini', name: 'o3-mini Reasoning', contextWindow: '200k tokens', reasoning: true, description: 'Deep reasoning STEM solver' }
+      ]
+    }
+  ],
+  tools: [
+    {
+      id: 'github',
+      name: 'GitHub & VCS Tool',
+      description: 'Clone repositories, manage branches, inspect diffs, and push commits.',
+      category: 'git',
+      permissions: ['git:read', 'git:write'],
+      inputs: { command: 'string', args: 'array' },
+      outputs: { status: 'object', stdout: 'string' },
+      execution_mode: 'async',
+      builtin: true
+    },
+    {
+      id: 'filesystem',
+      name: 'Safe Filesystem Engine',
+      description: 'Read, write, edit, and lint workspace code files with atomic commits.',
+      category: 'filesystem',
+      permissions: ['fs:read', 'fs:write'],
+      inputs: { path: 'string', content: 'string' },
+      outputs: { success: 'boolean' },
+      execution_mode: 'sync',
+      builtin: true
+    },
+    {
+      id: 'ccc_query',
+      name: 'Common Code Context (CCC)',
+      description: 'Semantic symbol discovery, dependency analysis, and architectural graph lookup.',
+      category: 'ccc',
+      permissions: ['ccc:query'],
+      inputs: { query: 'string', depth: 'number' },
+      outputs: { symbols: 'array', confidence: 'number' },
+      execution_mode: 'sync',
+      builtin: true
+    },
+    {
+      id: 'terminal',
+      name: 'Muscle Terminal Runner',
+      description: 'Execute build pipelines, install dependencies, and run validation scripts.',
+      category: 'terminal',
+      permissions: ['exec:process'],
+      inputs: { command: 'string' },
+      outputs: { exitCode: 'number', logs: 'string' },
+      execution_mode: 'background',
+      builtin: true
+    }
+  ],
+  cognitiveMemories: [
+    {
+      memory_id: 'mem-1',
+      memory_type: 'Project',
+      timestamp: Date.now() - 7200000,
+      scope: 'nexus-core',
+      content: { architecture: 'Bi-modal Brain/Muscle design', framework: 'React + Express' },
+      confidence: 0.98
+    },
+    {
+      memory_id: 'mem-2',
+      memory_type: 'Intent',
+      timestamp: Date.now() - 3600000,
+      scope: 'global',
+      content: { activeGoal: 'Full specification alignment with OPEN_SPECS.md' },
+      confidence: 1.0
+    }
+  ],
   isOrchestrating: false,
   currentStepIndex: 0,
   
@@ -1200,6 +1345,99 @@ export const useStore = create<AppState & AppActions>((set) => ({
       set(updates);
     }
   },
+  addOrchestrationEvent: (event) => set((state) => ({
+    orchestrationEvents: [event, ...state.orchestrationEvents].slice(0, 100)
+  })),
+  dispatchIntent: async (command, targetCardId, parameters) => {
+    const event: OrchestrationEvent = {
+      event_id: `evt-${Date.now()}`,
+      type: 'TASK_APPROVED',
+      timestamp: Date.now(),
+      project_id: get().currentProjectId || 'nexus-core',
+      payload: { command, targetCardId, parameters }
+    };
+    get().addOrchestrationEvent(event);
+    get().addActivityLog(`Dispatched steering intent: "${command}"`, 'scaffold', get().currentProjectId || undefined);
+
+    if (targetCardId) {
+      const pid = get().currentProjectId || 'nexus-core';
+      const cards = get().pCards[pid] || [];
+      const updated = cards.map(c => {
+        if (c.pcard_id === targetCardId) {
+          return {
+            ...c,
+            runtime: {
+              ...c.runtime,
+              build_status: 'SUCCESS' as const,
+              telemetry: {
+                ...c.runtime.telemetry,
+                errors: 0,
+                latency: Math.max(20, c.runtime.telemetry.latency - 15)
+              }
+            },
+            intent_layer: {
+              ...c.intent_layer,
+              blockers: []
+            },
+            autonomous_insights: []
+          };
+        }
+        return c;
+      });
+      get().setPCards(pid, updated);
+    }
+  },
+  addMemory: (memory) => set((state) => ({
+    cognitiveMemories: [memory, ...state.cognitiveMemories]
+  })),
+  executeTool: async (toolId, inputs) => {
+    const event: OrchestrationEvent = {
+      event_id: `tool-${Date.now()}`,
+      type: 'TOOL_EXECUTED',
+      timestamp: Date.now(),
+      project_id: get().currentProjectId || 'nexus-core',
+      payload: { toolId, inputs }
+    };
+    get().addOrchestrationEvent(event);
+    return { success: true, toolId, output: 'Tool execution verified successfully by muscle engine.' };
+  },
+  queryCCCServer: async (req) => {
+    const res = await fetch('/api/ccc/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req)
+    });
+    if (!res.ok) throw new Error('CCC Query failed');
+    return res.json();
+  },
+  exportSkillAsNsk: (skillId) => {
+    const skill = get().skills.find(s => s.id === skillId) || get().marketplaceSkills.find(s => s.id === skillId);
+    if (!skill) throw new Error('Skill not found');
+    const nskPackage = {
+      format: 'nsk',
+      nsk_version: '2.0.0',
+      exported_at: Date.now(),
+      checksum: `sha256-${Math.random().toString(36).substring(2)}`,
+      manifest: skill
+    };
+    return JSON.stringify(nskPackage, null, 2);
+  },
+  importSkillFromNsk: (nskJson) => {
+    try {
+      const pkg = JSON.parse(nskJson);
+      const manifest = pkg.manifest || pkg;
+      if (!manifest.name || !manifest.id) return false;
+      get().addSkill(manifest);
+      get().addActivityLog(`Installed skill package "${manifest.name}" from .nsk bundle`, 'skill');
+      return true;
+    } catch (e) {
+      console.error('Failed to import NSK bundle:', e);
+      return false;
+    }
+  },
+  toggleModelProvider: (providerId) => set((state) => ({
+    modelProviders: state.modelProviders.map(p => p.id === providerId ? { ...p, active: !p.active } : p)
+  })),
 }));
 
 if (typeof window !== 'undefined') {

@@ -12,7 +12,9 @@ export const SkillsView = () => {
     removeSkill, 
     toggleSkillActive, 
     updateSkillToLatest,
-    checkSkillUpdates 
+    checkSkillUpdates,
+    exportSkillAsNsk,
+    importSkillFromNsk
   } = useStore();
 
   const [search, setSearch] = useState('');
@@ -20,6 +22,7 @@ export const SkillsView = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [isContributing, setIsContributing] = useState(false);
   const [selectedSkillForModal, setSelectedSkillForModal] = useState<Skill | null>(null);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
 
   const categories = ['All', 'Frontend', 'Backend', 'Git', 'Cloud', 'Design'];
 
@@ -181,14 +184,59 @@ export const SkillsView = () => {
             </button>
           )}
         </div>
+        
+        {/* Import .nsk file */}
+        <label className="cursor-pointer flex items-center justify-center gap-2 bg-white/5 border border-white/10 px-5 py-3.5 rounded-2xl font-black text-[10px] tracking-[0.2em] uppercase hover:bg-white/10 transition-all text-white/70 hover:text-white shrink-0">
+          <Download className="w-3.5 h-3.5 rotate-180 text-primary" />
+          <span>Import .nsk</span>
+          <input 
+            type="file" 
+            accept=".nsk,.json" 
+            className="hidden" 
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  const content = ev.target?.result as string;
+                  if (content) {
+                    const ok = importSkillFromNsk(content);
+                    if (ok) {
+                      setImportStatus('Successfully installed .nsk package to active skills registry!');
+                      setTimeout(() => setImportStatus(null), 4000);
+                    } else {
+                      setImportStatus('Error: Invalid .nsk package format.');
+                      setTimeout(() => setImportStatus(null), 4000);
+                    }
+                  }
+                };
+                reader.readAsText(file);
+              }
+            }} 
+          />
+        </label>
+
         <button 
           onClick={() => setIsContributing(true)}
-          className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 px-6 py-3.5 rounded-2xl font-black text-[10px] tracking-[0.2em] uppercase hover:bg-white/10 transition-all text-white/70 hover:text-white"
+          className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 px-6 py-3.5 rounded-2xl font-black text-[10px] tracking-[0.2em] uppercase hover:bg-white/10 transition-all text-white/70 hover:text-white shrink-0"
         >
           <Plus className="w-3.5 h-3.5" />
           Contribute Skill
         </button>
       </div>
+
+      {/* Import Status Alert */}
+      {importStatus && (
+        <div className="mb-6 p-3.5 rounded-2xl bg-primary/10 border border-primary/30 text-white text-xs flex items-center justify-between relative z-10 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-primary" />
+            <span className="font-mono">{importStatus}</span>
+          </div>
+          <button onClick={() => setImportStatus(null)} className="text-white/40 hover:text-white">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Skill List Grid */}
       <div className="relative z-10 mb-20">
@@ -238,6 +286,15 @@ export const SkillsView = () => {
           onRemove={() => { removeSkill(selectedSkillForModal.id); setSelectedSkillForModal(null); }}
           onToggleActive={() => toggleSkillActive(selectedSkillForModal.id)}
           onUpdate={() => { updateSkillToLatest(selectedSkillForModal.id); setSelectedSkillForModal(null); }}
+          onExportNsk={() => {
+            const json = exportSkillAsNsk(selectedSkillForModal.id);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${selectedSkillForModal.id}.nsk`;
+            a.click();
+          }}
         />
       )}
 
@@ -434,7 +491,8 @@ const SkillDetailModal = ({
   onInstall, 
   onRemove,
   onToggleActive,
-  onUpdate
+  onUpdate,
+  onExportNsk
 }: { 
   skill: Skill;
   marketplaceSkill?: Skill;
@@ -444,6 +502,7 @@ const SkillDetailModal = ({
   onRemove: () => void;
   onToggleActive: () => void;
   onUpdate: () => void;
+  onExportNsk?: () => void;
 }) => {
   const isEnabled = skill.enabled !== false;
   const updateAvailable = isInstalled && marketplaceSkill && marketplaceSkill.version !== skill.version;
@@ -461,6 +520,16 @@ const SkillDetailModal = ({
               <div className="flex items-center gap-2 mb-1">
                 <h2 className="text-xl font-bold text-white">{skill.name}</h2>
                 <span className="text-xs text-primary font-mono bg-primary/10 px-2 py-0.5 rounded font-bold">v{skill.version}</span>
+                {skill.visual_priority && (
+                  <span className={cn(
+                    "text-[9px] font-mono uppercase px-2 py-0.5 rounded font-black",
+                    skill.visual_priority === 'critical' ? "bg-red-500/20 text-red-400 border border-red-500/30" :
+                    skill.visual_priority === 'high' ? "bg-primary/20 text-primary border border-primary/30" :
+                    "bg-white/10 text-white/60"
+                  )}>
+                    {skill.visual_priority} priority
+                  </span>
+                )}
               </div>
               <p className="text-xs text-white/40">By {skill.author} {skill.category ? `• ${skill.category}` : ''}</p>
             </div>
@@ -493,6 +562,23 @@ const SkillDetailModal = ({
               {skill.description}
             </p>
           </div>
+
+          {/* Manifest v2: Security Permissions */}
+          {skill.permissions && skill.permissions.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5 text-green-400" />
+                Sandbox Permissions ({skill.permissions.length})
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {skill.permissions.map(perm => (
+                  <span key={perm} className="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-400 rounded-lg text-xs font-mono">
+                    {perm}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Dependencies Breakdown */}
           <div>
@@ -533,6 +619,34 @@ const SkillDetailModal = ({
             </div>
           </div>
 
+          {/* Manifest v2: Autonomous Insight Triggers & Telemetry */}
+          {(skill.insight_triggers || skill.telemetry_mapping) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+              {skill.insight_triggers && (
+                <div>
+                  <h4 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Insight Triggers</h4>
+                  <ul className="space-y-1">
+                    {skill.insight_triggers.map((it, idx) => (
+                      <li key={idx} className="text-xs text-white/60 font-mono flex items-start gap-1.5">
+                        <span className="text-primary">•</span>
+                        <span>{it}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {skill.telemetry_mapping && (
+                <div>
+                  <h4 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Telemetry Mappings</h4>
+                  <div className="space-y-1 text-xs font-mono text-white/60">
+                    {skill.telemetry_mapping.latency_key && <div>Latency: <span className="text-blue-400">{skill.telemetry_mapping.latency_key}</span></div>}
+                    {skill.telemetry_mapping.error_key && <div>Errors: <span className="text-red-400">{skill.telemetry_mapping.error_key}</span></div>}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Workflows & Prompts */}
           {skill.workflows && skill.workflows.length > 0 && (
             <div>
@@ -559,7 +673,7 @@ const SkillDetailModal = ({
 
         {/* Modal Footer Controls */}
         <div className="p-6 border-t border-white/10 bg-[#0D0D0D] flex items-center justify-between">
-          <div>
+          <div className="flex items-center gap-3">
             {isInstalled && (
               <button 
                 onClick={onToggleActive}
@@ -570,6 +684,16 @@ const SkillDetailModal = ({
               >
                 <Power className="w-3.5 h-3.5" />
                 {isEnabled ? 'Skill Active' : 'Skill Disabled'}
+              </button>
+            )}
+            {onExportNsk && (
+              <button 
+                onClick={onExportNsk}
+                className="px-3.5 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold uppercase tracking-wider text-white/70 hover:text-white flex items-center gap-1.5 transition-colors"
+                title="Export skill as portable .nsk JSON package"
+              >
+                <Download className="w-3.5 h-3.5 text-primary" />
+                <span>Export .nsk</span>
               </button>
             )}
           </div>

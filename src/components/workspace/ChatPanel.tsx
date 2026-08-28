@@ -11,16 +11,16 @@ import { cn } from '../../lib/utils';
 import { generateOrchestration } from '../../lib/gemini';
 
 const BRAIN_MODES = [
-  { id: 'flash', name: 'Flash 2.5', icon: Zap, desc: 'Ultra-fast low-latency synthesis', model: 'gemini-2.5-flash' },
-  { id: 'deep-reasoning', name: 'Deep Reasoning', icon: Brain, desc: 'High thinking-budget deliberation', model: 'gemini-2.5-pro' },
-  { id: 'multi-brain', name: 'Multi-Brain Consensus', icon: GitFork, desc: 'Parallel 3-brain synthesis & critique', model: 'gemini-2.5-pro' },
-  { id: 'security-auditor', name: 'Security Auditor', icon: ShieldAlert, desc: 'Strict vulnerability & policy review', model: 'gemini-2.5-pro' },
+  { id: 'flash', name: 'Flash 3.7', icon: Zap, desc: 'Ultra-fast low-latency synthesis', model: 'gemini-3.7-flash' },
+  { id: 'deep-reasoning', name: 'Deep Reasoning', icon: Brain, desc: 'High thinking-budget deliberation', model: 'gemini-3.7-flash' },
+  { id: 'multi-brain', name: 'Multi-Brain Consensus', icon: GitFork, desc: 'Parallel multi-agent synthesis & verification', model: 'gemini-3.7-flash' },
+  { id: 'security-auditor', name: 'Security Auditor', icon: ShieldAlert, desc: 'Strict vulnerability & policy review', model: 'gemini-3.7-flash' },
 ];
 
 const MODELS = [
+  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash (Default)' },
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
-  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' }
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' }
 ];
 
 const ChatMessage = ({ msg }: { msg: Message }) => {

@@ -6,7 +6,7 @@ import { Zap, Activity, Shield, AlertTriangle, ChevronRight, Cpu } from 'lucide-
 import { motion } from 'motion/react';
 
 export const CardDeck = () => {
-  const { pCards, currentProjectId } = useStore();
+  const { pCards, currentProjectId, dispatchIntent } = useStore();
   const cards = currentProjectId ? pCards[currentProjectId] || [] : [];
 
   return (
@@ -16,20 +16,20 @@ export const CardDeck = () => {
           Nexus Deck
         </h1>
         <p className="text-white/30 text-[10px] tracking-[0.2em] uppercase">
-          Autonomous Orchestration • intentidy v1.0
+          Autonomous Orchestration • Intentidy v2.0 • Real-time Synapse
         </p>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 pb-20">
         {cards.map((card, idx) => (
-          <PCard key={card.pcard_id} card={card} index={idx} />
+          <PCard key={card.pcard_id} card={card} index={idx} onDispatch={dispatchIntent} />
         ))}
       </div>
     </div>
   );
 };
 
-const PCard = ({ card, index }: { card: PCardType, index: number }) => {
+const PCard = ({ card, index, onDispatch }: { card: PCardType, index: number, onDispatch: (cmd: string, cardId?: string) => Promise<void> }) => {
   const isDraft = card.type === 'PROJECT_DRAFT';
 
   return (
@@ -154,7 +154,10 @@ const PCard = ({ card, index }: { card: PCardType, index: number }) => {
             "{card.autonomous_insights[0].observation}"
           </p>
           <div className="mt-3 flex justify-end">
-            <button className="text-[10px] font-bold uppercase tracking-widest text-blue-400 flex items-center gap-1 hover:text-white transition-colors">
+            <button 
+              onClick={() => onDispatch(`Deploy Fix: ${card.autonomous_insights[0].suggestions[0] || card.autonomous_insights[0].observation}`, card.pcard_id)}
+              className="text-[10px] font-bold uppercase tracking-widest text-blue-400 flex items-center gap-1 hover:text-white transition-colors"
+            >
               Deploy Fix <ChevronRight className="w-3 h-3" />
             </button>
           </div>
@@ -165,7 +168,11 @@ const PCard = ({ card, index }: { card: PCardType, index: number }) => {
       {isDraft && card.quick_actions && (
         <div className="mt-auto grid grid-cols-2 gap-2">
           {card.quick_actions.map(action => (
-            <button key={action} className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all">
+            <button 
+              key={action} 
+              onClick={() => onDispatch(`Execute ${action} on ${card.identity.name}`, card.pcard_id)}
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+            >
               {action}
             </button>
           ))}
@@ -178,10 +185,13 @@ const PCard = ({ card, index }: { card: PCardType, index: number }) => {
         !isDraft && "mt-auto border-t border-white/5"
       )}>
         <span className="text-[9px] font-mono text-white/20 uppercase">#{card.pcard_id}</span>
-        <button className={cn(
-          "px-4 py-1.5 font-bold text-[10px] uppercase tracking-widest rounded-full transition-all",
-          isDraft ? "bg-blue-400 text-black hover:bg-white" : "bg-white text-black hover:bg-[#F27D26]"
-        )}>
+        <button 
+          onClick={() => onDispatch(isDraft ? `Scaffold Project Draft ${card.identity.name}` : `Steer Card: Optimize ${card.identity.name}`, card.pcard_id)}
+          className={cn(
+            "px-4 py-1.5 font-bold text-[10px] uppercase tracking-widest rounded-full transition-all active:scale-95",
+            isDraft ? "bg-blue-400 text-black hover:bg-white" : "bg-white text-black hover:bg-[#F27D26]"
+          )}
+        >
           {isDraft ? 'Scaffold' : 'Steer Card'}
         </button>
       </div>

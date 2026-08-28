@@ -1,0 +1,31 @@
+# API Routes
+# Generated: 2026-08-28 03:34 UTC
+
+
+## server.ts
+  GET      /api/health
+  GET      /api/telemetry
+  POST     /api/ccc/index
+  POST     /api/ccc/query
+  GET      /api/orchestration/events
+  POST     /api/nsp/dispatch
+  GET      /api/models/providers
+  GET      /api/skills/registry
+  POST     /api/skills/registry
+  GET      /api/git/status
+  GET      /api/git/log
+  GET      /api/git/diff
+  POST     /api/git/stage
+  POST     /api/git/unstage
+  POST     /api/git/commit
+  POST     /api/git/branch
+  POST     /api/git/init
+  POST     /api/git/sync
+  GET      /api/workspace/snapshot
+  POST     /api/workspace/snapshot
+  POST     /api/orchestrate
+  POST     /api/scaffold
+  GET      *
+
+## src/store/useStore.ts
+  GET      /

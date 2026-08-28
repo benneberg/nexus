@@ -1,0 +1,163 @@
+{
+  "_meta": {
+    "generated": "2026-08-28 03:35 UTC",
+    "note": "Read this file first to decide which artifacts to include in your context window. estimated_tokens is chars/4 \u2014 a rough guide only. recommended_for lists task types each artifact is most useful for."
+  },
+  "artifacts": [
+    {
+      "filename": "call-graph.json",
+      "size_bytes": 3736,
+      "estimated_tokens": 934,
+      "description": "Generated artifact",
+      "recommended_for": [],
+      "last_updated": 1787888100.1113636
+    },
+    {
+      "filename": "capabilities.json",
+      "size_bytes": 18223,
+      "estimated_tokens": 4555,
+      "description": "Semantic capability groups \u2014 what this service owns and exposes",
+      "recommended_for": [
+        "architecture",
+        "capabilities",
+        "domain"
+      ],
+      "last_updated": 1787888100.6909578
+    },
+    {
+      "filename": "change-surface.json",
+      "size_bytes": 10527,
+      "estimated_tokens": 2631,
+      "description": "Generated artifact",
+      "recommended_for": [],
+      "last_updated": 1787888100.2630956
+    },
+    {
+      "filename": "dependency-graph.md",
+      "size_bytes": 88,
+      "estimated_tokens": 22,
+      "description": "Generated artifact",
+      "recommended_for": [],
+      "last_updated": 1787888100.2398472
+    },
+    {
+      "filename": "dependency-graph.txt",
+      "size_bytes": 127,
+      "estimated_tokens": 31,
+      "description": "Internal module dependency relationships",
+      "recommended_for": [
+        "dependencies",
+        "impact-analysis",
+        "refactoring"
+      ],
+      "last_updated": 1787888100.179219
+    },
+    {
+      "filename": "entry-points.json",
+      "size_bytes": 103,
+      "estimated_tokens": 25,
+      "description": "Generated artifact",
+      "recommended_for": [],
+      "last_updated": 1787888100.1755242
+    },
+    {
+      "filename": "env-shape.txt",
+      "size_bytes": 430,
+      "estimated_tokens": 107,
+      "description": "Environment variables and configuration shape",
+      "recommended_for": [
+        "configuration",
+        "deployment",
+        "environment"
+      ],
+      "last_updated": 1787888100.2716594
+    },
+    {
+      "filename": "external-dependencies.json",
+      "size_bytes": 1850,
+      "estimated_tokens": 462,
+      "description": "External services, APIs, and databases this repo depends on",
+      "recommended_for": [
+        "dependencies",
+        "integration",
+        "architecture"
+      ],
+      "last_updated": 1787888100.6851256
+    },
+    {
+      "filename": "package.json",
+      "size_bytes": 1505,
+      "estimated_tokens": 376,
+      "description": "Generated artifact",
+      "recommended_for": [],
+      "last_updated": 1787888100.2721827
+    },
+    {
+      "filename": "public-api.txt",
+      "size_bytes": 606,
+      "estimated_tokens": 151,
+      "description": "Public-facing API surface extracted from source",
+      "recommended_for": [
+        "api",
+        "integration"
+      ],
+      "last_updated": 1787888100.1746192
+    },
+    {
+      "filename": "routes.txt",
+      "size_bytes": 734,
+      "estimated_tokens": 183,
+      "description": "HTTP API routes with methods and handlers",
+      "recommended_for": [
+        "api",
+        "endpoints",
+        "routing"
+      ],
+      "last_updated": 1787888100.114262
+    },
+    {
+      "filename": "symbol-index.json",
+      "size_bytes": 7487,
+      "estimated_tokens": 1871,
+      "description": "All public functions, classes, types with file locations",
+      "recommended_for": [
+        "symbol-lookup",
+        "function-search",
+        "refactoring"
+      ],
+      "last_updated": 1787888100.2012925
+    },
+    {
+      "filename": "tree.txt",
+      "size_bytes": 2112,
+      "estimated_tokens": 528,
+      "description": "Full directory structure of the repository",
+      "recommended_for": [
+        "navigation",
+        "structure"
+      ],
+      "last_updated": 1787888099.9183831
+    },
+    {
+      "filename": "type-graph.json",
+      "size_bytes": 5144,
+      "estimated_tokens": 1286,
+      "description": "Generated artifact",
+      "recommended_for": [],
+      "last_updated": 1787888100.233508
+    },
+    {
+      "filename": "types-extracted.ts",
+      "size_bytes": 9523,
+      "estimated_tokens": 2380,
+      "description": "TypeScript type definitions and interfaces",
+      "recommended_for": [
+        "types",
+        "schema",
+        "typescript"
+      ],
+      "last_updated": 1787888100.1997259
+    }
+  ],
+  "total_estimated_tokens": 15542
+}

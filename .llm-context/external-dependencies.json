@@ -1,0 +1,85 @@
+{
+  "service": "applet",
+  "repository": null,
+  "exposes": {
+    "api": [
+      "GET /api/git/diff",
+      "GET /api/git/log",
+      "GET /api/git/status",
+      "GET /api/health",
+      "GET /api/models/providers",
+      "GET /api/orchestration/events",
+      "GET /api/skills/registry",
+      "GET /api/telemetry",
+      "GET /api/workspace/snapshot",
+      "POST /api/ccc/index",
+      "POST /api/ccc/query",
+      "POST /api/git/branch",
+      "POST /api/git/commit",
+      "POST /api/git/init",
+      "POST /api/git/stage",
+      "POST /api/git/sync",
+      "POST /api/git/unstage",
+      "POST /api/nsp/dispatch",
+      "POST /api/orchestrate",
+      "POST /api/scaffold",
+      "POST /api/skills/registry",
+      "POST /api/workspace/snapshot"
+    ],
+    "events": [],
+    "types": [
+      "ActivityLog",
+      "AppState",
+      "Artifact",
+      "CCCAggregateResult",
+      "CCCGraphType",
+      "CCCIR",
+      "CCCObject",
+      "CCCPresetQuery",
+      "CCCQueryRequest",
+      "CCCQueryResponse",
+      "CognitiveMemory",
+      "ConditionGroup",
+      "GitCommit",
+      "GitStatus",
+      "Message",
+      "ModelInfo",
+      "ModelProvider",
+      "ModuleConfig",
+      "Operator",
+      "OrchestrationEvent",
+      "OrchestrationEventType",
+      "OrchestrationOptions",
+      "OrchestrationStep",
+      "PCard",
+      "Project",
+      "ProjectTemplate",
+      "QueryCondition",
+      "Skill",
+      "TelemetryStream",
+      "TemplateFile",
+      "ToolDefinition",
+      "ViewType"
+    ]
+  },
+  "depends_on": {
+    "services": [],
+    "apis_consumed": [],
+    "databases": [
+      "Database (Prisma)"
+    ],
+    "message_queues": [],
+    "external_apis": [
+      "OpenAI",
+      "Stripe",
+      "Supabase"
+    ]
+  },
+  "tags": [
+    "backend-api",
+    "frontend",
+    "typescript",
+    "ui"
+  ],
+  "detected_at": "2026-08-28 03:35 UTC"
+}

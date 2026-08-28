@@ -1,0 +1,464 @@
+{
+  "_meta": {
+    "generated": "2026-08-28 03:35 UTC",
+    "total_files": 32,
+    "scored_files": 32,
+    "weights": {
+      "fan_in": 0.4,
+      "recency": 0.25,
+      "pattern_density": 0.25,
+      "size": 0.1
+    },
+    "note": "Files ranked by likelihood of needing edits when implementing a change. fan_in=centrality, recency=recent activity, pattern_density=business logic density, size=inverse file size."
+  },
+  "files": [
+    {
+      "path": "src/store/useStore.ts",
+      "score": 0.775,
+      "imported_by_count": 18,
+      "days_since_modified": 0.0,
+      "pattern_hits": 1,
+      "factors": {
+        "fan_in": 1.0,
+        "recency": 0.5,
+        "pattern_density": 1.0,
+        "size": 0.0
+      },
+      "rank": 1
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "score": 0.5361,
+      "imported_by_count": 14,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.778,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 1.0
+      },
+      "rank": 2
+    },
+    {
+      "path": "src/types.ts",
+      "score": 0.4331,
+      "imported_by_count": 10,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.556,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.858
+      },
+      "rank": 3
+    },
+    {
+      "path": "src/App.tsx",
+      "score": 0.2799,
+      "imported_by_count": 3,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.167,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.883
+      },
+      "rank": 4
+    },
+    {
+      "path": "src/lib/gemini.ts",
+      "score": 0.2674,
+      "imported_by_count": 2,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.111,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.98
+      },
+      "rank": 5
+    },
+    {
+      "path": "src/components/CreateProjectModal.tsx",
+      "score": 0.2568,
+      "imported_by_count": 3,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.167,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.651
+      },
+      "rank": 6
+    },
+    {
+      "path": "src/lib/cccQueryEngine.ts",
+      "score": 0.247,
+      "imported_by_count": 2,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.111,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.776
+      },
+      "rank": 7
+    },
+    {
+      "path": "src/hooks/useTelemetry.ts",
+      "score": 0.2449,
+      "imported_by_count": 1,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.056,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.976
+      },
+      "rank": 8
+    },
+    {
+      "path": "src/lib/db.ts",
+      "score": 0.244,
+      "imported_by_count": 1,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.056,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.968
+      },
+      "rank": 9
+    },
+    {
+      "path": "src/components/OnboardingView.tsx",
+      "score": 0.236,
+      "imported_by_count": 1,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.056,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.887
+      },
+      "rank": 10
+    },
+    {
+      "path": "src/components/workspace/Workspace.tsx",
+      "score": 0.2338,
+      "imported_by_count": 1,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.056,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.865
+      },
+      "rank": 11
+    },
+    {
+      "path": "src/components/Sidebar.tsx",
+      "score": 0.2324,
+      "imported_by_count": 1,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.056,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.852
+      },
+      "rank": 12
+    },
+    {
+      "path": "src/components/InfoPage.tsx",
+      "score": 0.2313,
+      "imported_by_count": 1,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.056,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.841
+      },
+      "rank": 13
+    },
+    {
+      "path": "src/components/CardDeck.tsx",
+      "score": 0.2304,
+      "imported_by_count": 1,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.056,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.831
+      },
+      "rank": 14
+    },
+    {
+      "path": "src/components/ProjectSettings.tsx",
+      "score": 0.2251,
+      "imported_by_count": 2,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.111,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.557
+      },
+      "rank": 15
+    },
+    {
+      "path": "src/main.tsx",
+      "score": 0.2249,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.999
+      },
+      "rank": 16
+    },
+    {
+      "path": "src/__tests__/setup.ts",
+      "score": 0.2249,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.999
+      },
+      "rank": 17
+    },
+    {
+      "path": "vite.config.ts",
+      "score": 0.2236,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.986
+      },
+      "rank": 18
+    },
+    {
+      "path": "src/__tests__/gemini.test.ts",
+      "score": 0.2224,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.974
+      },
+      "rank": 19
+    },
+    {
+      "path": "src/lib/ccc.ts",
+      "score": 0.222,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.97
+      },
+      "rank": 20
+    },
+    {
+      "path": "src/__tests__/components.test.tsx",
+      "score": 0.2191,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.941
+      },
+      "rank": 21
+    },
+    {
+      "path": "src/__tests__/store.test.ts",
+      "score": 0.2179,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.929
+      },
+      "rank": 22
+    },
+    {
+      "path": "src/__tests__/cccQueryEngine.test.ts",
+      "score": 0.2178,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.928
+      },
+      "rank": 23
+    },
+    {
+      "path": "src/components/workspace/ChatPanel.tsx",
+      "score": 0.2167,
+      "imported_by_count": 2,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.111,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.472
+      },
+      "rank": 24
+    },
+    {
+      "path": "src/__tests__/SkillsView.test.tsx",
+      "score": 0.2166,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.916
+      },
+      "rank": 25
+    },
+    {
+      "path": "src/components/workspace/ArtifactPanel.tsx",
+      "score": 0.2101,
+      "imported_by_count": 2,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.111,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.407
+      },
+      "rank": 26
+    },
+    {
+      "path": "src/components/DashboardView.tsx",
+      "score": 0.2031,
+      "imported_by_count": 1,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.056,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.559
+      },
+      "rank": 27
+    },
+    {
+      "path": "src/components/SkillsView.tsx",
+      "score": 0.195,
+      "imported_by_count": 2,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.111,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.256
+      },
+      "rank": 28
+    },
+    {
+      "path": "src/components/CCCGraphEditor.tsx",
+      "score": 0.1895,
+      "imported_by_count": 1,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.056,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.423
+      },
+      "rank": 29
+    },
+    {
+      "path": "src/components/GitPanel.tsx",
+      "score": 0.1722,
+      "imported_by_count": 1,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.056,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.25
+      },
+      "rank": 30
+    },
+    {
+      "path": "src/components/CCCInspector.tsx",
+      "score": 0.1693,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.443
+      },
+      "rank": 31
+    },
+    {
+      "path": "server.ts",
+      "score": 0.1271,
+      "imported_by_count": 0,
+      "days_since_modified": 0.0,
+      "pattern_hits": 0,
+      "factors": {
+        "fan_in": 0.0,
+        "recency": 0.5,
+        "pattern_density": 0.0,
+        "size": 0.021
+      },
+      "rank": 32
+    }
+  ]
+}

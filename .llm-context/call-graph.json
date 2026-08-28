@@ -1,0 +1,181 @@
+{
+  "_meta": {
+    "generated": "2026-08-28 03:35 UTC",
+    "total_functions": 45,
+    "connected_functions": 20,
+    "depth": 2,
+    "note": "Shows which functions call which others (2-level depth). Only includes functions with at least one internal connection. Use with symbol-index.json to trace call paths."
+  },
+  "graph": {
+    "ArtifactPanel": {
+      "file": "src/components/workspace/ArtifactPanel.tsx",
+      "line": 13,
+      "calls": [
+        "cn"
+      ]
+    },
+    "CCCInspector": {
+      "file": "src/components/CCCInspector.tsx",
+      "line": 41,
+      "calls": [
+        "calculateAggregates",
+        "cn",
+        "parseQueryDSL",
+        "queryCCC"
+      ]
+    },
+    "ChatPanel": {
+      "file": "src/components/workspace/ChatPanel.tsx",
+      "line": 180,
+      "calls": [
+        "generateOrchestration"
+      ]
+    },
+    "DashboardView": {
+      "file": "src/components/DashboardView.tsx",
+      "line": 12,
+      "calls": [
+        "cn"
+      ]
+    },
+    "InfoPage": {
+      "file": "src/components/InfoPage.tsx",
+      "line": 5,
+      "calls": [
+        "cn"
+      ]
+    },
+    "SkillsView": {
+      "file": "src/components/SkillsView.tsx",
+      "line": 7,
+      "calls": [
+        "cn"
+      ]
+    },
+    "calculateAggregates": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 268,
+      "calls": [
+        "extractMetadataValue"
+      ],
+      "called_by": [
+        "CCCInspector"
+      ]
+    },
+    "cn": {
+      "file": "src/lib/utils.ts",
+      "line": 4,
+      "called_by": [
+        "ArtifactPanel",
+        "CCCInspector",
+        "DashboardView",
+        "InfoPage",
+        "SkillsView"
+      ]
+    },
+    "evaluateCondition": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 89,
+      "calls": [
+        "getFieldValue"
+      ],
+      "called_by": [
+        "evaluateConditionGroup",
+        "if"
+      ]
+    },
+    "evaluateConditionGroup": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 155,
+      "calls": [
+        "evaluateCondition"
+      ],
+      "called_by": [
+        "if",
+        "queryCCC"
+      ]
+    },
+    "extractMetadataValue": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 67,
+      "called_by": [
+        "calculateAggregates",
+        "getFieldValue",
+        "if"
+      ]
+    },
+    "generateOrchestration": {
+      "file": "src/lib/gemini.ts",
+      "line": 7,
+      "called_by": [
+        "ChatPanel"
+      ]
+    },
+    "getFieldValue": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 38,
+      "calls": [
+        "extractMetadataValue"
+      ],
+      "called_by": [
+        "evaluateCondition"
+      ]
+    },
+    "getRepoStatus": {
+      "file": "server.ts",
+      "line": 669,
+      "calls": [
+        "runGit"
+      ]
+    },
+    "if": {
+      "file": "src/components/workspace/ChatPanel.tsx",
+      "line": 367,
+      "calls": [
+        "evaluateCondition",
+        "evaluateConditionGroup",
+        "extractMetadataValue",
+        "runGit"
+      ]
+    },
+    "parseQueryDSL": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 179,
+      "called_by": [
+        "CCCInspector"
+      ]
+    },
+    "queryCCC": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 259,
+      "calls": [
+        "evaluateConditionGroup"
+      ],
+      "called_by": [
+        "CCCInspector"
+      ]
+    },
+    "recordOrchestrationEvent": {
+      "file": "server.ts",
+      "line": 404,
+      "called_by": [
+        "startServer"
+      ]
+    },
+    "runGit": {
+      "file": "server.ts",
+      "line": 17,
+      "called_by": [
+        "getRepoStatus",
+        "if"
+      ]
+    },
+    "startServer": {
+      "file": "server.ts",
+      "line": 1262,
+      "calls": [
+        "recordOrchestrationEvent"
+      ]
+    }
+  }
+}

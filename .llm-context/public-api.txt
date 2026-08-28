@@ -1,0 +1,14 @@
+# Public API (function signatures)
+# Generated: 2026-08-28 03:34 UTC
+
+
+## src/lib/utils.ts
+  function cn(...inputs: ClassValue[])
+
+## src/lib/cccQueryEngine.ts
+  function getFieldValue(node: CCCObject, field: string): any
+  function evaluateCondition(node: CCCObject, cond: QueryCondition): boolean
+  function evaluateConditionGroup(node: CCCObject, group: ConditionGroup): boolean
+  function parseQueryDSL(queryStr: string): ConditionGroup
+  function queryCCC(ir: CCCIR | null | undefined, conditionGroup: ConditionGroup): CCCObject[]
+  function calculateAggregates(nodes: CCCObject[]): CCCAggregateResult

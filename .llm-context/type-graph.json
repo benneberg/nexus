@@ -1,0 +1,222 @@
+{
+  "_meta": {
+    "generated": "2026-08-28 03:35 UTC",
+    "total_types": 32,
+    "note": "TypeScript type cross-reference. used_in lists files that explicitly import each type."
+  },
+  "types": {
+    "ActivityLog": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": []
+    },
+    "AppState": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    },
+    "Artifact": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    },
+    "ArtifactType": {
+      "defined_in": "src/types.ts",
+      "kind": "enum",
+      "used_in": [
+        "src/components/CCCGraphEditor.tsx",
+        "src/components/workspace/ArtifactPanel.tsx",
+        "src/components/workspace/ChatPanel.tsx",
+        "src/store/useStore.ts"
+      ]
+    },
+    "CCCAggregateResult": {
+      "defined_in": "src/lib/cccQueryEngine.ts",
+      "kind": "interface",
+      "used_in": []
+    },
+    "CCCGraphType": {
+      "defined_in": "src/types.ts",
+      "kind": "type",
+      "used_in": []
+    },
+    "CCCIR": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/components/CCCInspector.tsx",
+        "src/lib/ccc.ts",
+        "src/lib/cccQueryEngine.ts",
+        "src/store/useStore.ts"
+      ]
+    },
+    "CCCObject": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/components/CCCInspector.tsx",
+        "src/lib/ccc.ts",
+        "src/lib/cccQueryEngine.ts"
+      ]
+    },
+    "CCCPresetQuery": {
+      "defined_in": "src/lib/cccQueryEngine.ts",
+      "kind": "interface",
+      "used_in": []
+    },
+    "CCCQueryRequest": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    },
+    "CCCQueryResponse": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    },
+    "CognitiveMemory": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    },
+    "ConditionGroup": {
+      "defined_in": "src/lib/cccQueryEngine.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/components/CCCInspector.tsx"
+      ]
+    },
+    "GitCommit": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/components/GitPanel.tsx"
+      ]
+    },
+    "GitStatus": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": []
+    },
+    "Message": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/components/workspace/ChatPanel.tsx",
+        "src/store/useStore.ts"
+      ]
+    },
+    "ModelInfo": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": []
+    },
+    "ModelProvider": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    },
+    "Operator": {
+      "defined_in": "src/lib/cccQueryEngine.ts",
+      "kind": "type",
+      "used_in": [
+        "src/components/CCCInspector.tsx"
+      ]
+    },
+    "OrchestrationEvent": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    },
+    "OrchestrationEventType": {
+      "defined_in": "src/types.ts",
+      "kind": "type",
+      "used_in": []
+    },
+    "OrchestrationOptions": {
+      "defined_in": "src/lib/gemini.ts",
+      "kind": "interface",
+      "used_in": []
+    },
+    "OrchestrationStep": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    },
+    "PCard": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/components/CardDeck.tsx",
+        "src/store/useStore.ts"
+      ]
+    },
+    "Project": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    },
+    "ProjectTemplate": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": []
+    },
+    "QueryCondition": {
+      "defined_in": "src/lib/cccQueryEngine.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/components/CCCInspector.tsx"
+      ]
+    },
+    "Skill": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/components/SkillsView.tsx",
+        "src/store/useStore.ts"
+      ]
+    },
+    "TelemetryStream": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": []
+    },
+    "TemplateFile": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": []
+    },
+    "ToolDefinition": {
+      "defined_in": "src/types.ts",
+      "kind": "interface",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    },
+    "ViewType": {
+      "defined_in": "src/types.ts",
+      "kind": "type",
+      "used_in": [
+        "src/store/useStore.ts"
+      ]
+    }
+  }
+}

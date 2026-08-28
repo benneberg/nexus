@@ -1,0 +1,358 @@
+{
+  "_meta": {
+    "generated": "2026-08-28 03:35 UTC",
+    "total_symbols": 70
+  },
+  "symbols": {
+    "detected": {
+      "file": "server.ts",
+      "line": 516,
+      "kind": "class"
+    },
+    "OrchestrationEngine": {
+      "file": "server.ts",
+      "line": 965,
+      "kind": "class"
+    },
+    "ModuleConfig": {
+      "file": "server.ts",
+      "line": 1106,
+      "kind": "interface"
+    },
+    "GET /api/health": {
+      "file": "server.ts",
+      "line": 78,
+      "kind": "route"
+    },
+    "GET /api/telemetry": {
+      "file": "server.ts",
+      "line": 120,
+      "kind": "route"
+    },
+    "POST /api/ccc/index": {
+      "file": "server.ts",
+      "line": 131,
+      "kind": "route"
+    },
+    "POST /api/ccc/query": {
+      "file": "server.ts",
+      "line": 262,
+      "kind": "route"
+    },
+    "GET /api/orchestration/events": {
+      "file": "server.ts",
+      "line": 428,
+      "kind": "route"
+    },
+    "POST /api/nsp/dispatch": {
+      "file": "server.ts",
+      "line": 432,
+      "kind": "route"
+    },
+    "GET /api/models/providers": {
+      "file": "server.ts",
+      "line": 438,
+      "kind": "route"
+    },
+    "GET /api/skills/registry": {
+      "file": "server.ts",
+      "line": 606,
+      "kind": "route"
+    },
+    "POST /api/skills/registry": {
+      "file": "server.ts",
+      "line": 606,
+      "kind": "route"
+    },
+    "GET /api/git/status": {
+      "file": "server.ts",
+      "line": 744,
+      "kind": "route"
+    },
+    "GET /api/git/log": {
+      "file": "server.ts",
+      "line": 754,
+      "kind": "route"
+    },
+    "GET /api/git/diff": {
+      "file": "server.ts",
+      "line": 779,
+      "kind": "route"
+    },
+    "POST /api/git/stage": {
+      "file": "server.ts",
+      "line": 798,
+      "kind": "route"
+    },
+    "POST /api/git/unstage": {
+      "file": "server.ts",
+      "line": 816,
+      "kind": "route"
+    },
+    "POST /api/git/commit": {
+      "file": "server.ts",
+      "line": 834,
+      "kind": "route"
+    },
+    "POST /api/git/branch": {
+      "file": "server.ts",
+      "line": 853,
+      "kind": "route"
+    },
+    "POST /api/git/init": {
+      "file": "server.ts",
+      "line": 875,
+      "kind": "route"
+    },
+    "POST /api/git/sync": {
+      "file": "server.ts",
+      "line": 886,
+      "kind": "route"
+    },
+    "GET /api/workspace/snapshot": {
+      "file": "server.ts",
+      "line": 909,
+      "kind": "route"
+    },
+    "POST /api/workspace/snapshot": {
+      "file": "server.ts",
+      "line": 909,
+      "kind": "route"
+    },
+    "POST /api/orchestrate": {
+      "file": "server.ts",
+      "line": 443,
+      "kind": "route"
+    },
+    "POST /api/scaffold": {
+      "file": "server.ts",
+      "line": 1084,
+      "kind": "route"
+    },
+    "GET *": {
+      "file": "server.ts",
+      "line": 19,
+      "kind": "route"
+    },
+    "Artifact": {
+      "file": "src/types.ts",
+      "line": 11,
+      "kind": "interface"
+    },
+    "OrchestrationStep": {
+      "file": "src/types.ts",
+      "line": 22,
+      "kind": "interface"
+    },
+    "Message": {
+      "file": "src/types.ts",
+      "line": 30,
+      "kind": "interface"
+    },
+    "Project": {
+      "file": "src/types.ts",
+      "line": 56,
+      "kind": "interface"
+    },
+    "GitCommit": {
+      "file": "src/types.ts",
+      "line": 68,
+      "kind": "interface"
+    },
+    "GitStatus": {
+      "file": "src/types.ts",
+      "line": 76,
+      "kind": "interface"
+    },
+    "Skill": {
+      "file": "src/types.ts",
+      "line": 90,
+      "kind": "interface"
+    },
+    "TemplateFile": {
+      "file": "src/types.ts",
+      "line": 118,
+      "kind": "interface"
+    },
+    "ProjectTemplate": {
+      "file": "src/types.ts",
+      "line": 124,
+      "kind": "interface"
+    },
+    "CCCObject": {
+      "file": "src/types.ts",
+      "line": 138,
+      "kind": "interface"
+    },
+    "CCCQueryRequest": {
+      "file": "src/types.ts",
+      "line": 147,
+      "kind": "interface"
+    },
+    "CCCQueryResponse": {
+      "file": "src/types.ts",
+      "line": 154,
+      "kind": "interface"
+    },
+    "CCCIR": {
+      "file": "src/types.ts",
+      "line": 161,
+      "kind": "interface"
+    },
+    "OrchestrationEvent": {
+      "file": "src/types.ts",
+      "line": 178,
+      "kind": "interface"
+    },
+    "ModelInfo": {
+      "file": "src/types.ts",
+      "line": 188,
+      "kind": "interface"
+    },
+    "ModelProvider": {
+      "file": "src/types.ts",
+      "line": 198,
+      "kind": "interface"
+    },
+    "ToolDefinition": {
+      "file": "src/types.ts",
+      "line": 211,
+      "kind": "interface"
+    },
+    "CognitiveMemory": {
+      "file": "src/types.ts",
+      "line": 224,
+      "kind": "interface"
+    },
+    "PCard": {
+      "file": "src/types.ts",
+      "line": 233,
+      "kind": "interface"
+    },
+    "TelemetryStream": {
+      "file": "src/types.ts",
+      "line": 267,
+      "kind": "interface"
+    },
+    "ActivityLog": {
+      "file": "src/types.ts",
+      "line": 275,
+      "kind": "interface"
+    },
+    "AppState": {
+      "file": "src/types.ts",
+      "line": 283,
+      "kind": "interface"
+    },
+    "CCCGraphType": {
+      "file": "src/types.ts",
+      "line": 136,
+      "kind": "type"
+    },
+    "OrchestrationEventType": {
+      "file": "src/types.ts",
+      "line": 167,
+      "kind": "type"
+    },
+    "ViewType": {
+      "file": "src/types.ts",
+      "line": 265,
+      "kind": "type"
+    },
+    "ArtifactType": {
+      "file": "src/types.ts",
+      "line": 1,
+      "kind": "enum"
+    },
+    "OrchestrationOptions": {
+      "file": "src/lib/gemini.ts",
+      "line": 1,
+      "kind": "interface"
+    },
+    "cn": {
+      "file": "src/lib/utils.ts",
+      "line": 4,
+      "kind": "function"
+    },
+    "setItem": {
+      "file": "src/lib/db.ts",
+      "line": 23,
+      "kind": "function"
+    },
+    "getItem": {
+      "file": "src/lib/db.ts",
+      "line": 39,
+      "kind": "function"
+    },
+    "QueryCondition": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 5,
+      "kind": "interface"
+    },
+    "ConditionGroup": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 11,
+      "kind": "interface"
+    },
+    "CCCAggregateResult": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 16,
+      "kind": "interface"
+    },
+    "CCCPresetQuery": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 27,
+      "kind": "interface"
+    },
+    "Operator": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 3,
+      "kind": "type"
+    },
+    "getFieldValue": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 38,
+      "kind": "function"
+    },
+    "evaluateCondition": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 89,
+      "kind": "function"
+    },
+    "evaluateConditionGroup": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 155,
+      "kind": "function"
+    },
+    "parseQueryDSL": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 179,
+      "kind": "function"
+    },
+    "queryCCC": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 259,
+      "kind": "function"
+    },
+    "calculateAggregates": {
+      "file": "src/lib/cccQueryEngine.ts",
+      "line": 268,
+      "kind": "function"
+    },
+    "CCCRuntime": {
+      "file": "src/lib/ccc.ts",
+      "line": 6,
+      "kind": "class"
+    },
+    "AppActions": {
+      "file": "src/store/useStore.ts",
+      "line": 9,
+      "kind": "interface"
+    },
+    "GET /": {
+      "file": "src/store/useStore.ts",
+      "line": 6,
+      "kind": "route"
+    }
+  }
+}

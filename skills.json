@@ -1,0 +1,249 @@
+[
+  {
+    "id": "github-integration",
+    "name": "GitHub Sync & Clone",
+    "description": "Clone remote repositories directly into new Nexus workspaces, and push code changes back to GitHub securely.",
+    "version": "1.5.0",
+    "author": "GitOps Core",
+    "downloads": 9800,
+    "rating": 4.9,
+    "price": "Free",
+    "category": "Git",
+    "triggers": [
+      "github",
+      "clone",
+      "push",
+      "git",
+      "sync"
+    ],
+    "tools": [
+      "GitClient",
+      "CredentialManager"
+    ],
+    "dependencies": [
+      "@octokit/rest",
+      "simple-git"
+    ],
+    "retrievalRules": [
+      ".github/**/*",
+      ".git/**/*"
+    ],
+    "workflows": [
+      "clone_repository",
+      "push_code_changes"
+    ],
+    "validations": [
+      "GitAuth",
+      "BranchSync"
+    ],
+    "prompts": [
+      "System: Orchestrate clean commit history. Ensure credentials are secure."
+    ],
+    "permissions": [
+      "git:read",
+      "git:write"
+    ],
+    "visual_priority": "high",
+    "telemetry_mapping": {
+      "latency_key": "git_latency",
+      "error_key": "git_errors"
+    },
+    "insight_triggers": [
+      "Uncommitted changes detected",
+      "Branch divergence"
+    ]
+  },
+  {
+    "id": "tailwind-wizard",
+    "name": "Tailwind Wizard",
+    "description": "Zero-config utility-first styling automation.",
+    "version": "2.1.0",
+    "author": "DesignOps",
+    "downloads": 12400,
+    "rating": 4.9,
+    "price": "Free",
+    "category": "Frontend",
+    "triggers": [
+      "style",
+      "css",
+      "layout"
+    ],
+    "tools": [
+      "FileEditor"
+    ],
+    "dependencies": [
+      "tailwindcss",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "retrievalRules": [
+      "**/*.css",
+      "tailwind.config.ts"
+    ],
+    "workflows": [
+      "apply_style"
+    ],
+    "validations": [
+      "CSSLint"
+    ],
+    "prompts": [
+      "System: Design with intent."
+    ],
+    "permissions": [
+      "fs:write"
+    ],
+    "visual_priority": "normal",
+    "telemetry_mapping": {
+      "latency_key": "css_compile_latency",
+      "error_key": "css_lint_errors"
+    },
+    "insight_triggers": [
+      "Duplicate Tailwind class detected",
+      "Arbitrary value overload"
+    ]
+  },
+  {
+    "id": "advanced-git",
+    "name": "Advanced Git Operations",
+    "description": "Rebase orchestration, cherry-pick automation, and conflict resolution intelligence.",
+    "version": "1.0.5",
+    "author": "GitFlow",
+    "downloads": 5400,
+    "rating": 4.8,
+    "price": "Free",
+    "category": "Git",
+    "triggers": [
+      "rebase",
+      "merge",
+      "git"
+    ],
+    "tools": [
+      "GitClient"
+    ],
+    "dependencies": [
+      "simple-git",
+      "diff"
+    ],
+    "retrievalRules": [
+      ".git/**/*"
+    ],
+    "workflows": [
+      "resolve_conflicts"
+    ],
+    "validations": [
+      "GitStatus"
+    ],
+    "prompts": [
+      "System: Handle history with care."
+    ],
+    "permissions": [
+      "git:read",
+      "git:write"
+    ],
+    "visual_priority": "high",
+    "telemetry_mapping": {
+      "latency_key": "rebase_latency",
+      "error_key": "conflict_count"
+    },
+    "insight_triggers": [
+      "Merge conflicts present in working directory"
+    ]
+  },
+  {
+    "id": "dockerize",
+    "name": "Dockerize Application",
+    "description": "Automated containerization with optimized multi-stage build generation.",
+    "version": "1.2.0",
+    "author": "CloudNative",
+    "downloads": 8200,
+    "rating": 4.7,
+    "price": "$2/mo",
+    "category": "Cloud",
+    "triggers": [
+      "docker",
+      "container",
+      "deploy"
+    ],
+    "tools": [
+      "DockerEngine"
+    ],
+    "dependencies": [
+      "docker-cli",
+      "yaml"
+    ],
+    "retrievalRules": [
+      "Dockerfile",
+      "docker-compose.yml"
+    ],
+    "workflows": [
+      "generate_dockerfile"
+    ],
+    "validations": [
+      "DockerLinter"
+    ],
+    "prompts": [
+      "System: Minimize image size."
+    ],
+    "permissions": [
+      "container:build",
+      "fs:write"
+    ],
+    "visual_priority": "normal",
+    "telemetry_mapping": {
+      "latency_key": "build_duration",
+      "error_key": "container_crashes"
+    },
+    "insight_triggers": [
+      "Unoptimized large container layers found"
+    ]
+  },
+  {
+    "id": "db-gen",
+    "name": "Database Schema Generator",
+    "description": "Transform natural language into optimized SQL schemas and Prisma models.",
+    "version": "2.0.1",
+    "author": "DataSense",
+    "downloads": 15400,
+    "rating": 4.9,
+    "price": "Free",
+    "category": "Backend",
+    "triggers": [
+      "schema",
+      "database",
+      "sql"
+    ],
+    "tools": [
+      "DatabaseClient"
+    ],
+    "dependencies": [
+      "@prisma/client",
+      "pg"
+    ],
+    "retrievalRules": [
+      "prisma/schema.prisma",
+      "src/db/**/*"
+    ],
+    "workflows": [
+      "generate_schema"
+    ],
+    "validations": [
+      "PrismaValidate"
+    ],
+    "prompts": [
+      "System: Normalize data structures. Avoid redundant indices."
+    ],
+    "permissions": [
+      "db:read",
+      "db:write",
+      "fs:write"
+    ],
+    "visual_priority": "critical",
+    "telemetry_mapping": {
+      "latency_key": "query_latency",
+      "error_key": "migration_errors"
+    },
+    "insight_triggers": [
+      "Missing table foreign key relationship index"
+    ]
+  }
+]
