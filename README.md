@@ -10,7 +10,7 @@ Nexus is a full-stack, mobile-first engineering workspace designed for intent-dr
 
 ---
 
-## ✨ Highlights & Core Architecture
+## Highlights & Core Architecture
 
 - **Brain & Muscle Bi-Modal Architecture:** High-level AI intent reasoning (The Brain) separated from runtime execution, telemetry, and git operations (The Muscle).
 - **Mobile-First Card Deck (PCards):** Triage projects, trigger automated fixes, scaffold systems, and monitor build health via touch-friendly visual card stacks dispatching `INTENT_DISPATCH` over NSP.
@@ -43,7 +43,7 @@ Nexus is a full-stack, mobile-first engineering workspace designed for intent-dr
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend (Brain):** React 19, Vite 6, TypeScript 5.8, Tailwind CSS 4, Zustand 5, Motion, Lucide Icons, @tanstack/react-virtual, Monaco Editor
 - **Backend (Muscle):** Node.js 20+, Express 4, WebSocket (`ws`), esbuild
@@ -52,7 +52,7 @@ Nexus is a full-stack, mobile-first engineering workspace designed for intent-dr
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Installation
 ```bash
@@ -91,7 +91,7 @@ npm run start
 
 ---
 
-## 🧪 Testing & Verification Summary
+## Testing & Verification Summary
 
 The project is fully verified with zero build or lint errors:
 - **Build Status:** Passed (`npm run build` generates clean `dist/` bundle)
@@ -100,7 +100,7 @@ The project is fully verified with zero build or lint errors:
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 ├── server.ts                   # Express API routes, WebSocket gateway, Gemini proxy, Git & CCC engines
