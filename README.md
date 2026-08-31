@@ -1,4 +1,4 @@
-# Nexus
+# Nexus - engineering workspace
 
 > The semantic operating system for autonomous engineering. A full-stack, mobile-first engineering workspace replacing traditional file-centric editing with intent-driven steering, semantic codebase indexing, and multi-brain consensus orchestration.
 
