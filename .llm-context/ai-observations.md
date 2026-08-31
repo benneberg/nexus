@@ -12,7 +12,7 @@
 **Sufficient**: <yes / partial / no>
 **Missing**: <what was absent or unclear>
 **Assumptions made**: <what the AI had to guess>
-**Files needed not referenced**: <files opened outside LLM.md scope>
+**Files needed not referenced**: <files opened outside context scope>
 ```
 
 ---
