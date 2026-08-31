@@ -1,12 +1,12 @@
 # Nexus
 
-**The Semantic Operating System for Autonomous Engineering.**
+> The semantic operating system for autonomous engineering. A full-stack, mobile-first engineering workspace replacing traditional file-centric editing with intent-driven steering, semantic codebase indexing, and multi-brain consensus orchestration.
 
-> **Status:** Operational High-Fidelity Prototype & Autonomous Core  
-> **Architecture:** Bi-Modal Brain (React 19 SPA) & Muscle (Node.js/Express Server)  
-> **Persistence:** Multi-tier Local JSON (`skills.json`, `workspace-snapshot.json`) + IndexedDB / localStorage  
-
-Nexus is a full-stack, mobile-first engineering workspace designed for intent-driven software development. It replaces traditional file-centric editing with a high-level **steering interface** backed by semantic codebase indexing (CCC), real-time telemetry over the Nexus Synapse Protocol (NSP), multi-brain consensus orchestration powered by Gemini 3.7 Flash, and native Git execution.
+[![CI](https://github.com/benneberg/nexus/actions/workflows/ci.yml/badge.svg)](https://github.com/benneberg/nexus/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-Latest-fbf0d9.svg)](https://bun.sh/)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB.svg)](https://react.dev/)
 
 ---
 
